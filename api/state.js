@@ -2,6 +2,7 @@ const STATE_KEY = 'sloane-journey-state';
 
 async function kvGet(url, token, key) {
   const r = await fetch(`${url}/get/${key}`, {
+    cache: 'no-store',
     headers: { Authorization: `Bearer ${token}` }
   });
   const json = await r.json();
@@ -20,8 +21,9 @@ export default async function handler(req, res) {
   res.setHeader('Access-Control-Allow-Origin', '*');
   res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
   res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
-  res.setHeader('Cache-Control', 'no-store, no-cache, must-revalidate');
+  res.setHeader('Cache-Control', 'no-store, no-cache, must-revalidate, proxy-revalidate');
   res.setHeader('Pragma', 'no-cache');
+  res.setHeader('Expires', '0');
 
   if (req.method === 'OPTIONS') return res.status(200).end();
 
