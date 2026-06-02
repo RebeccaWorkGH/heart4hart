@@ -210,12 +210,11 @@ const SECTIONS=[
 ];
 
 let st={counts:{},feed:[],totalPts:0};
-let syncTimer=null;
+let saving=false;
 let polling=null;
+let syncTimer=null;
 
 async function loadFromServer(){
-  if(syncTimer)return;
-  setSyncStatus('syncing','Loading...');
   try{
     const r=await fetch('/api/state?t='+Date.now(),{cache:'no-store'});
     if(!r.ok)throw new Error();
@@ -225,30 +224,34 @@ async function loadFromServer(){
     st.totalPts=data.totalPts||0;
     setSyncStatus('ok','Live');
   }catch(e){
-    setSyncStatus('error','Could not load — check connection');
+    setSyncStatus('error','Could not connect');
   }
 }
 
 async function saveToServer(){
+  saving=true;
   try{
-    await fetch('/api/state',{
+    const payload={
+      counts:st.counts,
+      feed:st.feed.map(f=>({...f,time:f.time instanceof Date?f.time.toISOString():f.time})),
+      totalPts:st.totalPts,
+    };
+    const r=await fetch('/api/state',{
       method:'POST',
       headers:{'Content-Type':'application/json'},
-      body:JSON.stringify({
-        counts:st.counts,
-        feed:st.feed.map(f=>({...f,time:f.time instanceof Date?f.time.toISOString():f.time})),
-        totalPts:st.totalPts,
-      })
+      body:JSON.stringify(payload)
     });
-    setSyncStatus('ok','Saved ✓');
+    if(r.ok) setSyncStatus('ok','Saved ✓');
   }catch(e){
-    setSyncStatus('error','Save failed — tap to retry');
+    setSyncStatus('error','Save failed');
+  }finally{
+    saving=false;
   }
 }
 
 function debounceSave(){
   clearTimeout(syncTimer);
-  syncTimer=setTimeout(saveToServer,800);
+  syncTimer=setTimeout(saveToServer,500);
 }
 
 function setSyncStatus(type,msg){
@@ -267,6 +270,7 @@ function setSyncStatus(type,msg){
 function startPolling(){
   if(polling)clearInterval(polling);
   polling=setInterval(async()=>{
+    if(saving)return;
     try{
       const r=await fetch('/api/state?t='+Date.now(),{cache:'no-store'});
       if(!r.ok)return;
@@ -408,7 +412,6 @@ async function sendNote(){
   st.feed.unshift({id:Date.now()+Math.random(),type:'note',text:t,author:n||'Someone who loves you',time:new Date(),reactions:{},myReactions:{}});
   document.getElementById('nn').value='';document.getElementById('nt').value='';
   renderFeed(true);
-  clearTimeout(syncTimer);
   await saveToServer();
 }
 async function react(fid,rxn){
@@ -417,7 +420,6 @@ async function react(fid,rxn){
   if(f.myReactions[rxn]){f.reactions[rxn]=Math.max(0,(f.reactions[rxn]||1)-1);delete f.myReactions[rxn];}
   else{f.reactions[rxn]=(f.reactions[rxn]||0)+1;f.myReactions[rxn]=true;}
   renderFeed(true);
-  clearTimeout(syncTimer);
   await saveToServer();
 }
 
