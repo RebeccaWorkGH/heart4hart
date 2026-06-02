@@ -401,22 +401,24 @@ function logEv(id,col,pts){
   setSyncStatus('syncing','Saving...');
   debounceSave();
 }
-function sendNote(){
+async function sendNote(){
   const n=(document.getElementById('nn').value||'').trim();
   const t=(document.getElementById('nt').value||'').trim();
   if(!t)return;
   st.feed.unshift({id:Date.now()+Math.random(),type:'note',text:t,author:n||'Someone who loves you',time:new Date(),reactions:{},myReactions:{}});
   document.getElementById('nn').value='';document.getElementById('nt').value='';
   renderFeed(true);
-  debounceSave();
+  clearTimeout(syncTimer);
+  await saveToServer();
 }
-function react(fid,rxn){
+async function react(fid,rxn){
   const f=st.feed.find(f=>String(f.id)===String(fid));if(!f)return;
   if(!f.reactions)f.reactions={};if(!f.myReactions)f.myReactions={};
   if(f.myReactions[rxn]){f.reactions[rxn]=Math.max(0,(f.reactions[rxn]||1)-1);delete f.myReactions[rxn];}
   else{f.reactions[rxn]=(f.reactions[rxn]||0)+1;f.myReactions[rxn]=true;}
   renderFeed(true);
-  debounceSave();
+  clearTimeout(syncTimer);
+  await saveToServer();
 }
 
 loadFromServer().then(()=>{
