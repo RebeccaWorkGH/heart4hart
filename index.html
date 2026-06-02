@@ -1,0 +1,427 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Sloane's Heart Journey</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,wght@0,700;1,700&family=DM+Sans:wght@400;500&display=swap" rel="stylesheet" />
+  <style>
+    *{box-sizing:border-box;margin:0;padding:0}
+    :root{
+      --coral:#E8572A;--coral-l:#FEF0EB;--coral-d:#7A2610;
+      --peach:#F4956A;--peach-l:#FEF5F0;--peach-d:#8A3D1A;
+      --gold:#E8A020;--gold-l:#FEF7E6;--gold-d:#7A4E08;
+      --rose:#D4537E;--rose-l:#FCEAF4;--rose-d:#6B1A39;
+      --sage:#5A9E7A;--sage-l:#EAF5EF;--sage-d:#1E5238;
+      --warm-white:#FFFCF7;--cream:#FDF6ED;
+      --ink:#2C1810;--ink2:#6B4030;--ink3:#A87860;
+      --border:rgba(180,100,60,0.12);--border-md:rgba(180,100,60,0.22);
+      --r:14px;--r-sm:8px;--r-pill:99px;
+    }
+    body{font-family:'DM Sans',sans-serif;background:var(--warm-white);color:var(--ink);min-height:100vh;}
+    .app{max-width:680px;margin:0 auto;padding:0 0 4rem;}
+    .hero{background:linear-gradient(135deg,#E8572A 0%,#E8A020 60%,#F4956A 100%);color:#fff;padding:1.5rem 1.25rem 2rem;}
+    .hero-title{font-family:'Fraunces',serif;font-size:30px;font-style:italic;line-height:1.1;margin-bottom:4px;text-shadow:0 1px 3px rgba(0,0,0,0.15);}
+    .hero-title span{color:#FEF7E6;}
+    .hero-sub{font-size:13px;color:rgba(255,255,255,0.85);margin-bottom:1.25rem;}
+    .score-row{display:flex;background:rgba(0,0,0,0.12);border-radius:12px;overflow:hidden;}
+    .score-cell{flex:1;padding:0.875rem 1rem;border-right:1px solid rgba(255,255,255,0.15);text-align:center;}
+    .score-cell:last-child{border-right:none;}
+    .sc-label{font-size:11px;color:rgba(255,255,255,0.7);text-transform:uppercase;letter-spacing:.06em;margin-bottom:4px;}
+    .sc-val{font-family:'Fraunces',serif;font-size:28px;line-height:1;color:#fff;}
+    .sc-val.pts{color:#FEF7E6;}
+    .sc-val.today{color:#FEF7E6;}
+    .day-bar{padding:.75rem 1.25rem;border-bottom:1px solid var(--border-md);display:flex;align-items:center;justify-content:space-between;background:var(--cream);}
+    .day-label{font-size:13px;font-weight:500;color:var(--ink2);}
+    .day-pts{font-size:13px;color:var(--coral);font-weight:500;}
+    .section{padding:1rem 1.25rem 0;}
+    .section-head{margin-bottom:.75rem;}
+    .section-badge{display:inline-flex;align-items:center;font-size:11px;font-weight:500;padding:4px 12px;border-radius:var(--r-pill);border:1.5px solid;text-transform:uppercase;letter-spacing:.05em;}
+    .sb-coral{background:var(--coral-l);color:var(--coral-d);border-color:var(--peach);}
+    .sb-rose{background:var(--rose-l);color:var(--rose-d);border-color:var(--rose);}
+    .sb-gold{background:var(--gold-l);color:var(--gold-d);border-color:var(--gold);}
+    .sb-peach{background:var(--peach-l);color:var(--peach-d);border-color:var(--peach);}
+    .sb-sage{background:var(--sage-l);color:var(--sage-d);border-color:var(--sage);}
+    .event-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:8px;margin-bottom:1rem;}
+    @media(max-width:480px){.event-grid{grid-template-columns:1fr;}}
+    .ec{background:var(--warm-white);border:1.5px solid var(--border-md);border-radius:var(--r);padding:.75rem .875rem;padding-right:2.75rem;cursor:pointer;position:relative;transition:transform .1s,box-shadow .1s,border-color .1s;user-select:none;}
+    .ec:hover{transform:translateY(-2px);box-shadow:0 4px 16px rgba(232,87,42,0.12);border-color:var(--peach);}
+    .ec:active{transform:scale(.97);}
+    .ec.mc.logged{background:var(--coral-l);border-color:var(--coral);}
+    .ec.sc.logged{background:var(--rose-l);border-color:var(--rose);}
+    .ec.nc.logged{background:var(--gold-l);border-color:var(--gold);}
+    .ec.hc.logged{background:var(--peach-l);border-color:var(--peach);}
+    .ec.ic.logged{background:var(--sage-l);border-color:var(--sage);}
+    .ec-name{font-size:13px;font-weight:500;color:var(--ink);line-height:1.3;margin-bottom:3px;}
+    .ec.mc.logged .ec-name{color:var(--coral-d);}
+    .ec.sc.logged .ec-name{color:var(--rose-d);}
+    .ec.nc.logged .ec-name{color:var(--gold-d);}
+    .ec.hc.logged .ec-name{color:var(--peach-d);}
+    .ec.ic.logged .ec-name{color:var(--sage-d);}
+    .ec-note{font-size:11px;color:var(--ink3);}
+    .ec.mc.logged .ec-note{color:var(--coral);}
+    .ec.sc.logged .ec-note{color:var(--rose);}
+    .ec.nc.logged .ec-note{color:var(--gold-d);}
+    .ec.hc.logged .ec-note{color:var(--peach);}
+    .ec.ic.logged .ec-note{color:var(--sage);}
+    .ec-badge{position:absolute;top:50%;right:10px;transform:translateY(-50%);font-size:11px;font-weight:500;color:var(--ink3);white-space:nowrap;}
+    .ec.mc.logged .ec-badge{color:var(--coral);}
+    .ec.sc.logged .ec-badge{color:var(--rose);}
+    .ec.nc.logged .ec-badge{color:var(--gold-d);}
+    .ec.hc.logged .ec-badge{color:var(--peach-d);}
+    .ec.ic.logged .ec-badge{color:var(--sage-d);}
+    .divider{height:1px;background:var(--border-md);margin:1rem 1.25rem 0;}
+    .feed-wrap{padding:1rem 1.25rem;}
+    .feed-title{font-family:'Fraunces',serif;font-size:18px;color:var(--ink);margin-bottom:.875rem;}
+    .feed-item{display:flex;gap:10px;align-items:flex-start;padding:10px 0;border-bottom:1px solid var(--border);}
+    .feed-item:last-child{border-bottom:none;}
+    .fd{width:10px;height:10px;border-radius:50%;margin-top:4px;flex-shrink:0;}
+    .fd.milestone{background:var(--coral);}
+    .fd.setback{background:var(--rose);}
+    .fd.mom{background:var(--gold);}
+    .fd.hospital{background:var(--peach);}
+    .fd.nightshift{background:var(--sage);}
+    .fd.note{background:var(--coral-d);}
+    .fb{flex:1;min-width:0;}
+    .ft{font-size:13px;color:var(--ink);line-height:1.5;}
+    .fa{font-size:11px;color:var(--ink3);font-style:italic;margin-top:2px;}
+    .ftime{font-size:11px;color:var(--ink3);white-space:nowrap;}
+    .rxn-row{display:flex;gap:5px;margin-top:6px;flex-wrap:wrap;}
+    .rxn{font-size:12px;padding:2px 9px;border:1.5px solid var(--border-md);border-radius:var(--r-pill);background:var(--warm-white);cursor:pointer;font-family:'DM Sans',sans-serif;color:var(--ink2);transition:all .1s;}
+    .rxn:hover{border-color:var(--peach);background:var(--peach-l);}
+    .rxn.on{background:var(--coral-l);border-color:var(--coral);color:var(--coral-d);}
+    .note-area{padding:1rem 1.25rem;}
+    .note-lbl{font-size:12px;font-weight:500;color:var(--ink2);text-transform:uppercase;letter-spacing:.06em;}
+    .note-inputs{display:flex;gap:8px;flex-wrap:wrap;margin-top:.75rem;}
+    .note-inputs input{font-size:14px;padding:9px 12px;border:1.5px solid var(--border-md);border-radius:var(--r-sm);background:var(--cream);color:var(--ink);outline:none;font-family:'DM Sans',sans-serif;transition:border-color .12s;}
+    .note-inputs input:focus{border-color:var(--coral);}
+    .ni-name{width:140px;}
+    .ni-msg{flex:1;min-width:160px;}
+    .send-btn{padding:9px 18px;font-size:13px;font-weight:500;border:none;border-radius:var(--r-sm);background:linear-gradient(135deg,var(--coral),var(--gold));color:#fff;cursor:pointer;font-family:'DM Sans',sans-serif;white-space:nowrap;transition:transform .08s,opacity .1s;}
+    .send-btn:hover{transform:translateY(-1px);opacity:.9;}
+    .empty{font-size:13px;color:var(--ink3);font-style:italic;padding:.5rem 0;}
+    .fam-hero{background:linear-gradient(135deg,#D4537E 0%,#E8A020 100%);}
+    .view-badge-fam{background:rgba(255,255,255,0.25);color:#fff;font-size:11px;font-weight:500;padding:3px 10px;border-radius:var(--r-pill);margin-left:8px;vertical-align:middle;}
+    .sync-bar{font-size:11px;color:var(--ink3);text-align:center;padding:.4rem;background:var(--cream);border-bottom:1px solid var(--border);}
+    .sync-bar.syncing{color:var(--peach-d);}
+    .sync-bar.error{color:var(--rose-d);}
+    .sync-bar.ok{color:var(--sage-d);}
+    .refresh-btn{background:none;border:none;cursor:pointer;font-size:11px;color:var(--coral);font-family:'DM Sans',sans-serif;margin-left:6px;text-decoration:underline;}
+  </style>
+</head>
+<body>
+<div class="app">
+  <div id="root"></div>
+</div>
+<script>
+const M=[
+  {id:'extubation',name:'Extubation',pts:30,note:'Breathing on her own!'},
+  {id:'chest_drain',name:'Chest drains out',pts:25,note:'One less tube'},
+  {id:'pacer_wires',name:'Pacer wires out',pts:20,note:'Heart doing it solo'},
+  {id:'first_steps',name:'First steps',pts:40,note:'Walking again'},
+  {id:'sits_up',name:'Sits up in bed',pts:15,note:'Gravity: mastered'},
+  {id:'oral_meds',name:'Oral medications',pts:20,note:'Pills not IVs'},
+  {id:'foley_out',name:'Foley out',pts:15,note:'Dignity restored'},
+  {id:'ng_out',name:'NG tube out',pts:20,note:'One less thing'},
+  {id:'central_out',name:'Central line out',pts:20,note:'Fewer tubes!'},
+  {id:'icu_out',name:'Out of ICU',pts:50,note:'Step-down, here we come'},
+  {id:'solid_food',name:'Eats solid food',pts:15,note:'Real food!'},
+  {id:'first_laugh',name:'First proper laugh',pts:30,note:'The best sound'},
+  {id:'sat_chair',name:'Sat in a chair',pts:20,note:'Not the bed!'},
+  {id:'biopsy_clear',name:'Clean biopsy',pts:40,note:'No rejection — hallelujah'},
+  {id:'first_words',name:'First words post-vent',pts:25,note:'She has opinions already'},
+  {id:'one_wire',name:'One less monitor wire',pts:10,note:'Gradually becoming human again'},
+  {id:'friend_graduated',name:'Friend graduated out',pts:35,note:'A good omen in the hallway'},
+  {id:'big_improvement',name:'Unspecified big improvement',pts:30,note:'Something just got better'},
+  {id:'feeling_hopeful',name:'Feeling hopeful today',pts:20,note:'The most important thing'},
+  {id:'home',name:'Home!',pts:100,note:'The big one'},
+];
+const S=[
+  {id:'pneumothorax',name:'Double pneumothorax',pts:10,note:'The lung plot twist'},
+  {id:'monitor_3am',name:'Monitor alarm, 3am',pts:10,note:'Everyone awake now'},
+  {id:'reintubation',name:'Reintubation',pts:20,note:'Back on the vent'},
+  {id:'rejection',name:'Rejection scare',pts:25,note:'Heart throwing a tantrum'},
+  {id:'fever',name:'Mystery fever',pts:10,note:'The body being dramatic'},
+  {id:'line_out',name:'Line falls out',pts:10,note:'Classic'},
+  {id:'bad_gas',name:'Bad blood gas',pts:10,note:'Numbers doing their thing'},
+  {id:'arrhythmia',name:'Arrhythmia episode',pts:20,note:'Heart finding its rhythm'},
+  {id:'effusion',name:'Pleural effusion',pts:15,note:"Fluid where it shouldn't be"},
+  {id:'infection',name:'Infection scare',pts:15,note:'Cultures sent. Waiting.'},
+  {id:'delayed_sternal',name:'Delayed sternal closure',pts:25,note:'Takes the time it takes'},
+  {id:'sedation_up',name:'Sedation increased',pts:15,note:'More rest needed'},
+];
+const N=[
+  {id:'mom_shower',name:'Mom showered today',pts:20,note:'An achievement, honestly'},
+  {id:'fav_nurse',name:'Favorite nurse on duty',pts:15,note:'The one who gets it'},
+  {id:'real_meal',name:'Ate a real meal',pts:15,note:'Not vending machine food'},
+  {id:'went_outside',name:'Went outside briefly',pts:20,note:'Sky still exists, confirmed'},
+  {id:'good_coffee',name:'Got good coffee',pts:10,note:'Not the waiting room stuff'},
+  {id:'slept_bed',name:'Slept in an actual bed',pts:20,note:'Not the chair. The bed.'},
+  {id:'happy_tears',name:'Cried happy tears',pts:15,note:'The good kind of crying'},
+  {id:'first_news',name:'Doctor came to Nora first',pts:20,note:'You were first to know'},
+  {id:'kind_stranger',name:'Kind stranger moment',pts:10,note:'Someone was unexpectedly lovely'},
+  {id:'called_friend',name:'Called a friend',pts:10,note:'Remembered the outside world'},
+  {id:'real_laugh',name:'Actually laughed today',pts:15,note:'Real laugh, not hysterics'},
+  {id:'clean_clothes',name:'Wore clean clothes',pts:10,note:"Not yesterday's. Clean ones."},
+  {id:'snuck_nap',name:'Snuck in a nap',pts:15,note:'Horizontal and everything'},
+  {id:'no_google',name:'Did NOT google symptoms',pts:25,note:'Enormous restraint'},
+  {id:'no_cry_day',name:'Full day without crying',pts:20,note:'A personal record'},
+  {id:'found_parking',name:'Found parking first try',pts:15,note:'The universe cooperates'},
+  {id:'attractive_staff',name:'Attractive hospital staff',pts:10,note:'Noted. Appreciated. Moving on.'},
+  {id:'sun_came_out',name:'Sun came out today',pts:10,note:'Nature, doing its job'},
+];
+const H=[
+  {id:'bad_tv',name:'Watched terrible TV',pts:5,note:'Rock bottom entertainment'},
+  {id:'food_mystery',name:'Meal was unidentifiable',pts:10,note:'A beige mystery on a tray'},
+  {id:'wrong_name',name:'Called wrong patient name',pts:5,note:'Not Sloane, apparently'},
+  {id:'wifi_down',name:'Hospital wifi went down',pts:10,note:'Back to the stone age'},
+  {id:'elevator_wait',name:'Waited 10 mins for elevator',pts:5,note:'Stairs it is'},
+  {id:'room_arctic',name:'Room Arctic cold at 2am',pts:5,note:'Blanket fort constructed'},
+  {id:'mystery_smell',name:'Unexplained hallway smell',pts:5,note:'No one confirms what it is'},
+  {id:'vending_stole',name:'Vending machine ate a dollar',pts:5,note:'A small cruel joke'},
+  {id:'loud_neighbors',name:'Very loud neighboring family',pts:5,note:'They are also going through it'},
+  {id:'beloved_doctor',name:'Spotted the beloved doctor',pts:15,note:'The one everyone loves'},
+];
+const I=[
+  {id:'false_alarm',name:'False alarm — all fine',pts:10,note:'Heart 10 years shorter'},
+  {id:'draw_3am',name:'3am blood draw',pts:10,note:'Could not wait till morning'},
+  {id:'vitals_again',name:'Woken for routine vitals',pts:5,note:'7th time this shift'},
+  {id:'new_nurse',name:'New nurse, learning setup',pts:10,note:'Helpful. Very thorough. Slow.'},
+  {id:'brilliant_nurse',name:'Night nurse was exceptional',pts:15,note:'Quietly heroic at 4am'},
+  {id:'shift_chaos',name:'Shift change chaos',pts:5,note:'The handover ballet'},
+  {id:'call_ignored',name:'Call light ignored 20 mins',pts:10,note:'A lesson in patience'},
+  {id:'team_2am',name:'Whole team appeared at 2am',pts:15,note:'For unexplained reasons'},
+  {id:'restless_night',name:'Sloane restless all night',pts:10,note:'Nora was right there'},
+  {id:'nora_slept',name:'Nora actually slept through',pts:20,note:'The body just gave up'},
+  {id:'great_vitals',name:'Great vitals at midnight',pts:15,note:'Numbers being cooperative'},
+  {id:'quiet_night',name:'Quiet night — actually quiet',pts:20,note:'A gift. Cherished.'},
+];
+
+const ALL=[...M,...S,...N,...H,...I];
+const EMOJIS=[{id:'h',icon:'♥',l:'love'},{id:'f',icon:'✊',l:'with you'},{id:'s',icon:'★',l:'amazing'},{id:'u',icon:'↑',l:'yes!'},{id:'c',icon:'✦',l:'celebrate'}];
+const SECTIONS=[
+  {label:"Sloane's milestones",badge:'sb-coral',events:M,color:'mc'},
+  {label:'Setbacks',badge:'sb-rose',events:S,color:'sc'},
+  {label:"Nora's moments",badge:'sb-gold',events:N,color:'nc'},
+  {label:'Hospital life',badge:'sb-peach',events:H,color:'hc'},
+  {label:'Night shift',badge:'sb-sage',events:I,color:'ic'},
+];
+
+let st={counts:{},feed:[],totalPts:0};
+let syncTimer=null;
+let polling=null;
+
+async function loadFromServer(){
+  setSyncStatus('syncing','Loading...');
+  try{
+    const r=await fetch('/api/state');
+    if(!r.ok)throw new Error();
+    const data=await r.json();
+    st.counts=data.counts||{};
+    st.feed=(data.feed||[]).map(f=>({...f,time:new Date(f.time)}));
+    st.totalPts=data.totalPts||0;
+    setSyncStatus('ok','Live');
+  }catch(e){
+    setSyncStatus('error','Could not load — check connection');
+  }
+}
+
+async function saveToServer(){
+  try{
+    await fetch('/api/state',{
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({
+        counts:st.counts,
+        feed:st.feed.map(f=>({...f,time:f.time instanceof Date?f.time.toISOString():f.time})),
+        totalPts:st.totalPts,
+      })
+    });
+    setSyncStatus('ok','Saved ✓');
+  }catch(e){
+    setSyncStatus('error','Save failed — tap to retry');
+  }
+}
+
+function debounceSave(){
+  clearTimeout(syncTimer);
+  syncTimer=setTimeout(saveToServer,800);
+}
+
+function setSyncStatus(type,msg){
+  const el=document.getElementById('sync-status');
+  if(!el)return;
+  el.className='sync-bar '+type;
+  el.textContent=msg;
+  if(type==='ok'){
+    const btn=document.createElement('button');
+    btn.className='refresh-btn';btn.textContent='Refresh';
+    btn.onclick=()=>loadFromServer().then(()=>rerender());
+    el.appendChild(btn);
+  }
+}
+
+function startPolling(){
+  if(polling)clearInterval(polling);
+  polling=setInterval(async()=>{
+    try{
+      const r=await fetch('/api/state');
+      if(!r.ok)return;
+      const data=await r.json();
+      st.counts=data.counts||{};
+      st.feed=(data.feed||[]).map(f=>({...f,time:new Date(f.time)}));
+      st.totalPts=data.totalPts||0;
+      rerender();
+    }catch(e){}
+  },10000);
+}
+
+function rerender(){
+  if(isFamily())renderFeed(true);
+  else{
+    updateScores();
+    renderSections();
+    renderFeed(false);
+  }
+}
+
+function isFamily(){return new URLSearchParams(window.location.search).get('view')==='family';}
+function fmt(d){const diff=Math.floor((new Date()-new Date(d))/60000);if(diff<1)return'just now';if(diff<60)return diff+'m ago';if(diff<1440)return Math.floor(diff/60)+'h ago';return Math.floor(diff/1440)+'d ago';}
+function totalEv(){return Object.values(st.counts).filter(v=>typeof v==='number').reduce((a,b)=>a+b,0);}
+function totalNotes(){return st.feed.filter(f=>f.type==='note').length;}
+function todayPts(){const t=new Date().toDateString();return st.feed.filter(f=>f.type!=='note'&&new Date(f.time).toDateString()===t).reduce((a,f)=>a+(f.pts||0),0);}
+
+function cardHTML(ev,col){
+  const c=st.counts[ev.id]||0,logged=c>0;
+  const badge=c>1?`<div class="ec-badge">×${c}</div>`:logged?`<div class="ec-badge">✓</div>`:`<div class="ec-badge">+${ev.pts}</div>`;
+  return`<div class="ec ${col}${logged?' logged':''}" data-id="${ev.id}" data-col="${col}" data-pts="${ev.pts}"><div class="ec-name">${ev.name}</div><div class="ec-note">${ev.note}</div>${badge}</div>`;
+}
+function feedHTML(f,family){
+  const rxc=f.reactions||{},myr=f.myReactions||{};
+  const rxns=family?`<div class="rxn-row">${EMOJIS.map(e=>{const c=rxc[e.id]||0,mine=myr[e.id];return`<button class="rxn${mine?' on':''}" data-fid="${f.id}" data-rxn="${e.id}">${e.icon}${c>0?' '+c:''}</button>`;}).join('')}</div>`:'';
+  const auth=f.author?`<div class="fa">— ${f.author}</div>`:'';
+  return`<div class="feed-item"><div class="fd ${f.type}"></div><div class="fb"><div class="ft">${f.text}</div>${auth}${rxns}</div><div class="ftime">${fmt(f.time)}</div></div>`;
+}
+
+function updateScores(){
+  const p=document.getElementById('pts'),e=document.getElementById('evs'),t=document.getElementById('tdp'),db=document.getElementById('day-pts-bar');
+  const tp=todayPts();
+  if(p)p.textContent=st.totalPts;if(e)e.textContent=totalEv();if(t)t.textContent='+'+tp;if(db)db.textContent='+'+tp+' pts today';
+}
+
+function renderNora(){
+  const today=new Date().toLocaleDateString('en-US',{weekday:'long',month:'long',day:'numeric'});
+  document.getElementById('root').innerHTML=`
+    <div class="hero">
+      <div class="hero-title"><span>Sloane's</span> heart journey</div>
+      <div class="hero-sub">Logging the wild ride, one moment at a time</div>
+      <div class="score-row">
+        <div class="score-cell"><div class="sc-label">Points</div><div class="sc-val pts" id="pts">${st.totalPts}</div></div>
+        <div class="score-cell"><div class="sc-label">Events</div><div class="sc-val" id="evs">${totalEv()}</div></div>
+        <div class="score-cell"><div class="sc-label">Today</div><div class="sc-val today" id="tdp">+${todayPts()}</div></div>
+      </div>
+    </div>
+    <div class="sync-bar ok" id="sync-status">Live <button class="refresh-btn" onclick="loadFromServer().then(()=>rerender())">Refresh</button></div>
+    <div class="day-bar">
+      <div class="day-label">${today}</div>
+      <div class="day-pts" id="day-pts-bar">+${todayPts()} pts today</div>
+    </div>
+    <div id="sections"></div>
+    <div class="divider"></div>
+    <div class="feed-wrap">
+      <div class="feed-title">Today's log</div>
+      <div id="feed"></div>
+    </div>`;
+  document.getElementById('sections').addEventListener('click',e=>{const c=e.target.closest('.ec');if(c)logEv(c.dataset.id,c.dataset.col,parseInt(c.dataset.pts));});
+  document.getElementById('feed').addEventListener('click',e=>{const b=e.target.closest('.rxn');if(b)react(b.dataset.fid,b.dataset.rxn);});
+  renderSections();renderFeed(false);
+}
+
+function renderFamily(){
+  document.getElementById('root').innerHTML=`
+    <div class="hero fam-hero">
+      <div class="hero-title"><span>Sloane's</span> heart journey</div>
+      <div class="hero-sub">Following along with Nora & Sloane <span class="view-badge-fam">Family & friends</span></div>
+      <div class="score-row">
+        <div class="score-cell"><div class="sc-label">Points</div><div class="sc-val pts">${st.totalPts}</div></div>
+        <div class="score-cell"><div class="sc-label">Events</div><div class="sc-val">${totalEv()}</div></div>
+        <div class="score-cell"><div class="sc-label">Notes of love</div><div class="sc-val" id="note-ct">${totalNotes()}</div></div>
+      </div>
+    </div>
+    <div class="sync-bar ok" id="sync-status">Live — updates every 10 seconds <button class="refresh-btn" onclick="loadFromServer().then(()=>rerender())">Refresh now</button></div>
+    <div class="note-area">
+      <div class="note-lbl">Leave a note for Nora</div>
+      <div class="note-inputs">
+        <input class="ni-name" id="nn" placeholder="Your name" maxlength="40"/>
+        <input class="ni-msg" id="nt" placeholder="Thinking of you both..." maxlength="200"/>
+        <button class="send-btn" onclick="sendNote()">Send ↗</button>
+      </div>
+    </div>
+    <div class="divider"></div>
+    <div class="feed-wrap">
+      <div class="feed-title">What's happened</div>
+      <div id="feed"></div>
+    </div>`;
+  document.getElementById('feed').addEventListener('click',e=>{const b=e.target.closest('.rxn');if(b)react(b.dataset.fid,b.dataset.rxn);});
+  renderFeed(true);
+  startPolling();
+}
+
+function renderSections(){
+  const el=document.getElementById('sections');if(!el)return;
+  el.innerHTML=SECTIONS.map(sec=>`<div class="section"><div class="section-head"><span class="section-badge ${sec.badge}">${sec.label}</span></div><div class="event-grid">${sec.events.map(e=>cardHTML(e,sec.color)).join('')}</div></div>`).join('<div style="height:2px"></div>');
+}
+function renderFeed(family){
+  const el=document.getElementById('feed');if(!el)return;
+  if(!st.feed.length){el.innerHTML='<p class="empty">Nothing yet — tap an event above to start logging.</p>';return;}
+  el.innerHTML=st.feed.slice(0,30).map(f=>feedHTML(f,family)).join('');
+  if(family){
+    const nc=document.getElementById('note-ct');if(nc)nc.textContent=totalNotes();
+    const pEl=document.querySelector('.sc-val.pts');if(pEl)pEl.textContent=st.totalPts;
+  }
+}
+function logEv(id,col,pts){
+  const ev=ALL.find(e=>e.id===id);if(!ev)return;
+  st.counts[id]=(st.counts[id]||0)+1;st.totalPts+=pts;
+  const typeMap={mc:'milestone',sc:'setback',nc:'mom',hc:'hospital',ic:'nightshift'};
+  const type=typeMap[col]||'milestone';
+  const pools={
+    milestone:[`${ev.name}! +${pts} pts. That's huge.`,`${ev.name} ✓ — another step forward.`,`Logged: ${ev.name}. +${pts} pts.`],
+    setback:[`${ev.name}. +${pts} pts. Nora handles it.`,`Setback: ${ev.name}. Still standing.`],
+    mom:[`Nora win: ${ev.name}. +${pts} pts.`,`Mom moment: ${ev.name}. This counts.`],
+    hospital:[`${ev.name}. Hospital being hospital. +${pts} pts.`,`Logged: ${ev.name}. The full experience.`],
+    nightshift:[`Night update: ${ev.name}. +${pts} pts.`,`Logged at some ungodly hour: ${ev.name}.`],
+  };
+  const pool=pools[type]||pools.milestone;
+  st.feed.unshift({id:Date.now()+Math.random(),type,text:pool[Math.floor(Math.random()*pool.length)],time:new Date(),pts,reactions:{},myReactions:{}});
+  updateScores();renderSections();renderFeed(false);
+  setSyncStatus('syncing','Saving...');
+  debounceSave();
+}
+function sendNote(){
+  const n=(document.getElementById('nn').value||'').trim();
+  const t=(document.getElementById('nt').value||'').trim();
+  if(!t)return;
+  st.feed.unshift({id:Date.now()+Math.random(),type:'note',text:t,author:n||'Someone who loves you',time:new Date(),reactions:{},myReactions:{}});
+  document.getElementById('nn').value='';document.getElementById('nt').value='';
+  renderFeed(true);
+  debounceSave();
+}
+function react(fid,rxn){
+  const f=st.feed.find(f=>String(f.id)===String(fid));if(!f)return;
+  if(!f.reactions)f.reactions={};if(!f.myReactions)f.myReactions={};
+  if(f.myReactions[rxn]){f.reactions[rxn]=Math.max(0,(f.reactions[rxn]||1)-1);delete f.myReactions[rxn];}
+  else{f.reactions[rxn]=(f.reactions[rxn]||0)+1;f.myReactions[rxn]=true;}
+  renderFeed(true);
+  debounceSave();
+}
+
+loadFromServer().then(()=>{
+  if(isFamily())renderFamily();
+  else renderNora();
+});
+</script>
+</body>
+</html>
