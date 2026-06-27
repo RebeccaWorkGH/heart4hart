@@ -22,20 +22,52 @@
     }
     body{font-family:'DM Sans',sans-serif;background:var(--warm-white);color:var(--ink);min-height:100vh;}
     .app{max-width:680px;margin:0 auto;padding:0 0 4rem;}
+
+    /* HERO */
     .hero{background:linear-gradient(135deg,#E8572A 0%,#E8A020 60%,#F4956A 100%);color:#fff;padding:1.5rem 1.25rem 2rem;}
+    .hero.fam{background:linear-gradient(135deg,#D4537E 0%,#E8A020 100%);}
     .hero-title{font-family:'Fraunces',serif;font-size:30px;font-style:italic;line-height:1.1;margin-bottom:4px;text-shadow:0 1px 3px rgba(0,0,0,0.15);}
     .hero-title span{color:#FEF7E6;}
-    .hero-sub{font-size:13px;color:rgba(255,255,255,0.85);margin-bottom:1.25rem;}
+    .hero-sub{font-size:13px;color:rgba(255,255,255,0.85);margin-bottom:1.25rem;display:flex;align-items:center;gap:8px;}
+    .fam-pill{background:rgba(255,255,255,0.25);color:#fff;font-size:11px;font-weight:500;padding:3px 10px;border-radius:var(--r-pill);}
     .score-row{display:flex;background:rgba(0,0,0,0.12);border-radius:12px;overflow:hidden;}
     .score-cell{flex:1;padding:0.875rem 1rem;border-right:1px solid rgba(255,255,255,0.15);text-align:center;}
     .score-cell:last-child{border-right:none;}
     .sc-label{font-size:11px;color:rgba(255,255,255,0.7);text-transform:uppercase;letter-spacing:.06em;margin-bottom:4px;}
     .sc-val{font-family:'Fraunces',serif;font-size:28px;line-height:1;color:#fff;}
-    .sc-val.pts{color:#FEF7E6;}
-    .sc-val.today{color:#FEF7E6;}
-    .day-bar{padding:.75rem 1.25rem;border-bottom:1px solid var(--border-md);display:flex;align-items:center;justify-content:space-between;background:var(--cream);}
-    .day-label{font-size:13px;font-weight:500;color:var(--ink2);}
-    .day-pts{font-size:13px;color:var(--coral);font-weight:500;}
+
+    /* STATUS BAR */
+    .status-bar{padding:.5rem 1.25rem;background:var(--cream);border-bottom:1px solid var(--border-md);display:flex;align-items:center;justify-content:space-between;min-height:36px;}
+    .status-msg{font-size:12px;color:var(--ink3);}
+    .status-msg.saving{color:var(--gold-d);}
+    .status-msg.saved{color:var(--sage-d);}
+    .status-msg.error{color:var(--rose-d);}
+    .refresh-btn{font-size:12px;color:var(--coral);background:none;border:none;cursor:pointer;font-family:'DM Sans',sans-serif;text-decoration:underline;}
+
+    /* DATE BAR */
+    .date-bar{padding:.75rem 1.25rem;border-bottom:1px solid var(--border-md);display:flex;align-items:center;justify-content:space-between;background:var(--cream);}
+    .date-nav{display:flex;align-items:center;gap:10px;}
+    .date-nav-btn{background:none;border:1.5px solid var(--border-md);border-radius:var(--r-sm);width:30px;height:30px;cursor:pointer;font-size:16px;color:var(--ink2);display:flex;align-items:center;justify-content:center;transition:border-color .1s;}
+    .date-nav-btn:hover{border-color:var(--coral);}
+    .date-nav-btn:disabled{opacity:0.3;cursor:default;}
+    .date-label{font-size:13px;font-weight:500;color:var(--ink2);cursor:pointer;text-decoration:underline;text-decoration-color:var(--border-md);}
+    .date-pts{font-size:13px;color:var(--coral);font-weight:500;}
+
+    /* DATE PICKER MODAL */
+    .modal-bg{position:fixed;inset:0;background:rgba(0,0,0,0.4);z-index:100;display:flex;align-items:center;justify-content:center;}
+    .modal{background:var(--warm-white);border-radius:var(--r);padding:1.25rem;width:90%;max-width:360px;max-height:70vh;overflow-y:auto;}
+    .modal-title{font-family:'Fraunces',serif;font-size:18px;margin-bottom:1rem;}
+    .day-list{display:flex;flex-direction:column;gap:6px;}
+    .day-item{padding:10px 14px;border:1.5px solid var(--border-md);border-radius:var(--r-sm);cursor:pointer;display:flex;justify-content:space-between;align-items:center;transition:border-color .1s,background .1s;}
+    .day-item:hover{border-color:var(--coral);background:var(--coral-l);}
+    .day-item.active{border-color:var(--coral);background:var(--coral-l);}
+    .day-item-date{font-size:13px;font-weight:500;color:var(--ink);}
+    .day-item-pts{font-size:12px;color:var(--ink3);}
+    .modal-close{width:100%;margin-top:1rem;padding:10px;border:1.5px solid var(--border-md);border-radius:var(--r-sm);background:none;font-size:14px;color:var(--ink2);cursor:pointer;font-family:'DM Sans',sans-serif;}
+    .modal-close:hover{background:var(--cream);}
+    .no-days{font-size:13px;color:var(--ink3);font-style:italic;padding:.5rem 0;}
+
+    /* SECTIONS */
     .section{padding:1rem 1.25rem 0;}
     .section-head{margin-bottom:.75rem;}
     .section-badge{display:inline-flex;align-items:center;font-size:11px;font-weight:500;padding:4px 12px;border-radius:var(--r-pill);border:1.5px solid;text-transform:uppercase;letter-spacing:.05em;}
@@ -44,8 +76,10 @@
     .sb-gold{background:var(--gold-l);color:var(--gold-d);border-color:var(--gold);}
     .sb-peach{background:var(--peach-l);color:var(--peach-d);border-color:var(--peach);}
     .sb-sage{background:var(--sage-l);color:var(--sage-d);border-color:var(--sage);}
+
     .event-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:8px;margin-bottom:1rem;}
     @media(max-width:480px){.event-grid{grid-template-columns:1fr;}}
+
     .ec{background:var(--warm-white);border:1.5px solid var(--border-md);border-radius:var(--r);padding:.75rem .875rem;padding-right:2.75rem;cursor:pointer;position:relative;transition:transform .1s,box-shadow .1s,border-color .1s;user-select:none;}
     .ec:hover{transform:translateY(-2px);box-shadow:0 4px 16px rgba(232,87,42,0.12);border-color:var(--peach);}
     .ec:active{transform:scale(.97);}
@@ -72,6 +106,8 @@
     .ec.nc.logged .ec-badge{color:var(--gold-d);}
     .ec.hc.logged .ec-badge{color:var(--peach-d);}
     .ec.ic.logged .ec-badge{color:var(--sage-d);}
+
+    /* FEED */
     .divider{height:1px;background:var(--border-md);margin:1rem 1.25rem 0;}
     .feed-wrap{padding:1rem 1.25rem;}
     .feed-title{font-family:'Fraunces',serif;font-size:18px;color:var(--ink);margin-bottom:.875rem;}
@@ -88,10 +124,14 @@
     .ft{font-size:13px;color:var(--ink);line-height:1.5;}
     .fa{font-size:11px;color:var(--ink3);font-style:italic;margin-top:2px;}
     .ftime{font-size:11px;color:var(--ink3);white-space:nowrap;}
+
+    /* REACTIONS */
     .rxn-row{display:flex;gap:5px;margin-top:6px;flex-wrap:wrap;}
     .rxn{font-size:12px;padding:2px 9px;border:1.5px solid var(--border-md);border-radius:var(--r-pill);background:var(--warm-white);cursor:pointer;font-family:'DM Sans',sans-serif;color:var(--ink2);transition:all .1s;}
     .rxn:hover{border-color:var(--peach);background:var(--peach-l);}
     .rxn.on{background:var(--coral-l);border-color:var(--coral);color:var(--coral-d);}
+
+    /* NOTE INPUT */
     .note-area{padding:1rem 1.25rem;}
     .note-lbl{font-size:12px;font-weight:500;color:var(--ink2);text-transform:uppercase;letter-spacing:.06em;}
     .note-inputs{display:flex;gap:8px;flex-wrap:wrap;margin-top:.75rem;}
@@ -101,21 +141,19 @@
     .ni-msg{flex:1;min-width:160px;}
     .send-btn{padding:9px 18px;font-size:13px;font-weight:500;border:none;border-radius:var(--r-sm);background:linear-gradient(135deg,var(--coral),var(--gold));color:#fff;cursor:pointer;font-family:'DM Sans',sans-serif;white-space:nowrap;transition:transform .08s,opacity .1s;}
     .send-btn:hover{transform:translateY(-1px);opacity:.9;}
+    .send-btn:disabled{opacity:.5;cursor:default;transform:none;}
+
     .empty{font-size:13px;color:var(--ink3);font-style:italic;padding:.5rem 0;}
-    .fam-hero{background:linear-gradient(135deg,#D4537E 0%,#E8A020 100%);}
-    .view-badge-fam{background:rgba(255,255,255,0.25);color:#fff;font-size:11px;font-weight:500;padding:3px 10px;border-radius:var(--r-pill);margin-left:8px;vertical-align:middle;}
-    .sync-bar{font-size:11px;color:var(--ink3);text-align:center;padding:.4rem;background:var(--cream);border-bottom:1px solid var(--border);}
-    .sync-bar.syncing{color:var(--peach-d);}
-    .sync-bar.error{color:var(--rose-d);}
-    .sync-bar.ok{color:var(--sage-d);}
-    .refresh-btn{background:none;border:none;cursor:pointer;font-size:11px;color:var(--coral);font-family:'DM Sans',sans-serif;margin-left:6px;text-decoration:underline;}
+    .readonly-notice{font-size:12px;color:var(--ink3);background:var(--cream);border-radius:var(--r-sm);padding:8px 12px;margin:0 1.25rem;text-align:center;}
   </style>
 </head>
 <body>
 <div class="app">
   <div id="root"></div>
+  <div id="modal-root"></div>
 </div>
 <script>
+// ─── EVENT DATA ───────────────────────────────────────────────────────────────
 const M=[
   {id:'extubation',name:'Extubation',pts:30,note:'Breathing on her own!'},
   {id:'chest_drain',name:'Chest drains out',pts:25,note:'One less tube'},
@@ -209,224 +247,363 @@ const SECTIONS=[
   {label:'Night shift',badge:'sb-sage',events:I,color:'ic'},
 ];
 
-let st={counts:{},feed:[],totalPts:0};
-let saving=false;
-let polling=null;
-let syncTimer=null;
-
-async function loadFromServer(){
-  try{
-    const r=await fetch('/api/state?t='+Date.now(),{cache:'no-store'});
-    if(!r.ok)throw new Error();
-    const data=await r.json();
-    st.counts=data.counts||{};
-    st.feed=(data.feed||[]).map(f=>({...f,time:new Date(f.time)}));
-    st.totalPts=data.totalPts||0;
-    setSyncStatus('ok','Live');
-  }catch(e){
-    setSyncStatus('error','Could not connect');
-  }
+// ─── STATE ────────────────────────────────────────────────────────────────────
+function todayKey(){return new Date().toISOString().slice(0,10);}
+function fmtDate(d){
+  const dt=new Date(d+'T12:00:00');
+  return dt.toLocaleDateString('en-US',{weekday:'long',month:'long',day:'numeric'});
+}
+function fmtTime(d){
+  const diff=Math.floor((new Date()-new Date(d))/60000);
+  if(diff<1)return'just now';if(diff<60)return diff+'m ago';
+  if(diff<1440)return Math.floor(diff/60)+'h ago';return Math.floor(diff/1440)+'d ago';
 }
 
-async function saveToServer(){
-  saving=true;
+let viewDate=todayKey();
+let dayData={date:viewDate,events:[],notes:[],totalPts:0};
+let allDays=[];
+let polling=null;
+let saveTimeout=null;
+let isSaving=false;
+
+function isFamily(){return new URLSearchParams(window.location.search).get('view')==='family';}
+function isToday(){return viewDate===todayKey();}
+
+// ─── API ──────────────────────────────────────────────────────────────────────
+async function fetchDay(date){
+  const r=await fetch(`/api/state?date=${date}&t=${Date.now()}`,{cache:'no-store'});
+  if(!r.ok)throw new Error('fetch failed');
+  return r.json();
+}
+async function fetchAllDays(){
+  const r=await fetch(`/api/state?dates=all&t=${Date.now()}`,{cache:'no-store'});
+  if(!r.ok)return[];
+  const j=await r.json();
+  return j.days||[];
+}
+async function saveDay(data){
+  isSaving=true;
+  setStatus('saving','Saving...');
   try{
-    const payload={
-      counts:st.counts,
-      feed:st.feed.map(f=>({...f,time:f.time instanceof Date?f.time.toISOString():f.time})),
-      totalPts:st.totalPts,
-    };
     const r=await fetch('/api/state',{
       method:'POST',
       headers:{'Content-Type':'application/json'},
-      body:JSON.stringify(payload)
+      body:JSON.stringify(data)
     });
-    if(r.ok) setSyncStatus('ok','Saved ✓');
-  }catch(e){
-    setSyncStatus('error','Save failed');
-  }finally{
-    saving=false;
-  }
+    if(r.ok){setStatus('saved','Saved ✓');}
+    else{setStatus('error','Save failed');}
+  }catch(e){setStatus('error','Save failed');}
+  finally{isSaving=false;}
+}
+function scheduleSave(){
+  clearTimeout(saveTimeout);
+  saveTimeout=setTimeout(()=>saveDay(dayData),600);
 }
 
-function debounceSave(){
-  clearTimeout(syncTimer);
-  syncTimer=setTimeout(saveToServer,500);
-}
-
-function setSyncStatus(type,msg){
-  const el=document.getElementById('sync-status');
+// ─── RENDER HELPERS ───────────────────────────────────────────────────────────
+function setStatus(type,msg){
+  const el=document.getElementById('status-msg');
   if(!el)return;
-  el.className='sync-bar '+type;
+  el.className='status-msg '+type;
   el.textContent=msg;
-  if(type==='ok'){
-    const btn=document.createElement('button');
-    btn.className='refresh-btn';btn.textContent='Refresh';
-    btn.onclick=()=>loadFromServer().then(()=>rerender());
-    el.appendChild(btn);
-  }
 }
 
-function startPolling(){
-  if(polling)clearInterval(polling);
-  polling=setInterval(async()=>{
-    if(saving)return;
-    try{
-      const r=await fetch('/api/state?t='+Date.now(),{cache:'no-store'});
-      if(!r.ok)return;
-      const data=await r.json();
-      st.counts=data.counts||{};
-      st.feed=(data.feed||[]).map(f=>({...f,time:new Date(f.time)}));
-      st.totalPts=data.totalPts||0;
-      rerender();
-    }catch(e){}
-  },5000);
-}
-
-function rerender(){
-  if(isFamily())renderFeed(true);
-  else{
-    updateScores();
-    renderSections();
-    renderFeed(false);
-  }
-}
-
-function isFamily(){return new URLSearchParams(window.location.search).get('view')==='family';}
-function fmt(d){const diff=Math.floor((new Date()-new Date(d))/60000);if(diff<1)return'just now';if(diff<60)return diff+'m ago';if(diff<1440)return Math.floor(diff/60)+'h ago';return Math.floor(diff/1440)+'d ago';}
-function totalEv(){return Object.values(st.counts).filter(v=>typeof v==='number').reduce((a,b)=>a+b,0);}
-function totalNotes(){return st.feed.filter(f=>f.type==='note').length;}
-function todayPts(){const t=new Date().toDateString();return st.feed.filter(f=>f.type!=='note'&&new Date(f.time).toDateString()===t).reduce((a,f)=>a+(f.pts||0),0);}
+function totalEventsToday(){return dayData.events.reduce((a,e)=>a+(e.count||0),0);}
 
 function cardHTML(ev,col){
-  const c=st.counts[ev.id]||0,logged=c>0;
-  const badge=c>1?`<div class="ec-badge">×${c}</div>`:logged?`<div class="ec-badge">✓</div>`:`<div class="ec-badge">+${ev.pts}</div>`;
-  return`<div class="ec ${col}${logged?' logged':''}" data-id="${ev.id}" data-col="${col}" data-pts="${ev.pts}"><div class="ec-name">${ev.name}</div><div class="ec-note">${ev.note}</div>${badge}</div>`;
-}
-function feedHTML(f,family){
-  const rxc=f.reactions||{},myr=f.myReactions||{};
-  const rxns=family?`<div class="rxn-row">${EMOJIS.map(e=>{const c=rxc[e.id]||0,mine=myr[e.id];return`<button class="rxn${mine?' on':''}" data-fid="${f.id}" data-rxn="${e.id}">${e.icon}${c>0?' '+c:''}</button>`;}).join('')}</div>`:'';
-  const auth=f.author?`<div class="fa">— ${f.author}</div>`:'';
-  return`<div class="feed-item"><div class="fd ${f.type}"></div><div class="fb"><div class="ft">${f.text}</div>${auth}${rxns}</div><div class="ftime">${fmt(f.time)}</div></div>`;
+  const entry=dayData.events.find(e=>e.id===ev.id);
+  const count=entry?entry.count:0;
+  const logged=count>0;
+  const badge=count>1?`<div class="ec-badge">×${count}</div>`:logged?`<div class="ec-badge">✓</div>`:`<div class="ec-badge">+${ev.pts}</div>`;
+  return`<div class="ec ${col}${logged?' logged':''}" data-id="${ev.id}" data-col="${col}" data-pts="${ev.pts}">
+    <div class="ec-name">${ev.name}</div>
+    <div class="ec-note">${ev.note}</div>
+    ${badge}
+  </div>`;
 }
 
-function updateScores(){
-  const p=document.getElementById('pts'),e=document.getElementById('evs'),t=document.getElementById('tdp'),db=document.getElementById('day-pts-bar');
-  const tp=todayPts();
-  if(p)p.textContent=st.totalPts;if(e)e.textContent=totalEv();if(t)t.textContent='+'+tp;if(db)db.textContent='+'+tp+' pts today';
+function feedItemHTML(f,family){
+  const rxc=f.reactions||{},myr=f.myReactions||{};
+  const rxns=family?`<div class="rxn-row">${EMOJIS.map(e=>{
+    const c=rxc[e.id]||0,mine=myr[e.id];
+    return`<button class="rxn${mine?' on':''}" data-fid="${f.id}" data-rxn="${e.id}">${e.icon}${c>0?' '+c:''}</button>`;
+  }).join('')}</div>`:'';
+  const auth=f.author?`<div class="fa">— ${f.author}</div>`:'';
+  return`<div class="feed-item">
+    <div class="fd ${f.type}"></div>
+    <div class="fb"><div class="ft">${f.text}</div>${auth}${rxns}</div>
+    <div class="ftime">${fmtTime(f.time)}</div>
+  </div>`;
+}
+
+// ─── MAIN RENDER ─────────────────────────────────────────────────────────────
+function render(){
+  if(isFamily())renderFamily();
+  else renderNora();
 }
 
 function renderNora(){
-  const today=new Date().toLocaleDateString('en-US',{weekday:'long',month:'long',day:'numeric'});
+  const readonly=!isToday();
   document.getElementById('root').innerHTML=`
     <div class="hero">
       <div class="hero-title"><span>Sloane's</span> heart journey</div>
       <div class="hero-sub">Logging the wild ride, one moment at a time</div>
       <div class="score-row">
-        <div class="score-cell"><div class="sc-label">Points</div><div class="sc-val pts" id="pts">${st.totalPts}</div></div>
-        <div class="score-cell"><div class="sc-label">Events</div><div class="sc-val" id="evs">${totalEv()}</div></div>
-        <div class="score-cell"><div class="sc-label">Today</div><div class="sc-val today" id="tdp">+${todayPts()}</div></div>
+        <div class="score-cell"><div class="sc-label">Total pts</div><div class="sc-val">${dayData.totalPts}</div></div>
+        <div class="score-cell"><div class="sc-label">Today's events</div><div class="sc-val">${totalEventsToday()}</div></div>
+        <div class="score-cell"><div class="sc-label">Notes</div><div class="sc-val">${dayData.notes.length}</div></div>
       </div>
     </div>
-    <div class="sync-bar ok" id="sync-status">Live <button class="refresh-btn" onclick="loadFromServer().then(()=>rerender())">Refresh</button></div>
-    <div class="day-bar">
-      <div class="day-label">${today}</div>
-      <div class="day-pts" id="day-pts-bar">+${todayPts()} pts today</div>
+    <div class="status-bar">
+      <span class="status-msg saved" id="status-msg">Live</span>
+      <button class="refresh-btn" onclick="refreshDay()">Refresh</button>
     </div>
-    <div id="sections"></div>
-    <div class="divider"></div>
-    <div class="feed-wrap">
-      <div class="feed-title">Today's log</div>
-      <div id="feed"></div>
-    </div>`;
-  document.getElementById('sections').addEventListener('click',e=>{const c=e.target.closest('.ec');if(c)logEv(c.dataset.id,c.dataset.col,parseInt(c.dataset.pts));});
-  document.getElementById('feed').addEventListener('click',e=>{const b=e.target.closest('.rxn');if(b)react(b.dataset.fid,b.dataset.rxn);});
-  renderSections();renderFeed(false);
+    <div class="date-bar">
+      <div class="date-nav">
+        <button class="date-nav-btn" onclick="prevDay()" id="prev-btn">‹</button>
+        <span class="date-label" onclick="showDatePicker()">${fmtDate(viewDate)}</span>
+        <button class="date-nav-btn" onclick="nextDay()" id="next-btn" ${isToday()?'disabled':''}>›</button>
+      </div>
+      <div class="date-pts">${isToday()?'today':'read only'}</div>
+    </div>
+    ${readonly?`<div class="readonly-notice" style="margin-top:1rem">📅 Viewing ${fmtDate(viewDate)} — tap today's date to log new events</div>`:''}
+    ${readonly?`<div class="divider"></div><div class="feed-wrap"><div class="feed-title">What happened</div><div id="feed">${renderFeedHTML(false)}</div></div>`:`
+      <div id="sections"></div>
+      <div class="divider"></div>
+      <div class="feed-wrap">
+        <div class="feed-title">Today's log</div>
+        <div id="feed">${renderFeedHTML(false)}</div>
+      </div>
+    `}`;
+
+  if(!readonly){
+    renderSections();
+    document.getElementById('sections').addEventListener('click',e=>{
+      const c=e.target.closest('.ec');
+      if(c)logEvent(c.dataset.id,c.dataset.col,parseInt(c.dataset.pts));
+    });
+  }
+  document.getElementById('feed').addEventListener('click',e=>{
+    const b=e.target.closest('.rxn');
+    if(b)react(b.dataset.fid,b.dataset.rxn);
+  });
 }
 
 function renderFamily(){
+  const readonly=!isToday();
   document.getElementById('root').innerHTML=`
-    <div class="hero fam-hero">
+    <div class="hero fam">
       <div class="hero-title"><span>Sloane's</span> heart journey</div>
-      <div class="hero-sub">Following along with Nora & Sloane <span class="view-badge-fam">Family & friends</span></div>
+      <div class="hero-sub">Following along with Nora & Sloane <span class="fam-pill">Family & friends</span></div>
       <div class="score-row">
-        <div class="score-cell"><div class="sc-label">Points</div><div class="sc-val pts">${st.totalPts}</div></div>
-        <div class="score-cell"><div class="sc-label">Events</div><div class="sc-val">${totalEv()}</div></div>
-        <div class="score-cell"><div class="sc-label">Notes of love</div><div class="sc-val" id="note-ct">${totalNotes()}</div></div>
+        <div class="score-cell"><div class="sc-label">Total pts</div><div class="sc-val">${dayData.totalPts}</div></div>
+        <div class="score-cell"><div class="sc-label">Events</div><div class="sc-val">${totalEventsToday()}</div></div>
+        <div class="score-cell"><div class="sc-label">Notes</div><div class="sc-val">${dayData.notes.length}</div></div>
       </div>
     </div>
-    <div class="sync-bar ok" id="sync-status">Live — updates every 10 seconds <button class="refresh-btn" onclick="loadFromServer().then(()=>rerender())">Refresh now</button></div>
+    <div class="status-bar">
+      <span class="status-msg saved" id="status-msg">Updates every 10 seconds</span>
+      <button class="refresh-btn" onclick="refreshDay()">Refresh now</button>
+    </div>
+    <div class="date-bar">
+      <div class="date-nav">
+        <button class="date-nav-btn" onclick="prevDay()" id="prev-btn">‹</button>
+        <span class="date-label" onclick="showDatePicker()">${fmtDate(viewDate)}</span>
+        <button class="date-nav-btn" onclick="nextDay()" id="next-btn" ${isToday()?'disabled':''}>›</button>
+      </div>
+      <div class="date-pts">${isToday()?'live':'past day'}</div>
+    </div>
+    ${isToday()?`
     <div class="note-area">
       <div class="note-lbl">Leave a note for Nora</div>
       <div class="note-inputs">
         <input class="ni-name" id="nn" placeholder="Your name" maxlength="40"/>
         <input class="ni-msg" id="nt" placeholder="Thinking of you both..." maxlength="200"/>
-        <button class="send-btn" onclick="sendNote()">Send ↗</button>
+        <button class="send-btn" id="send-btn" onclick="sendNote()">Send ↗</button>
       </div>
-    </div>
+    </div>`:''}
     <div class="divider"></div>
     <div class="feed-wrap">
-      <div class="feed-title">What's happened</div>
-      <div id="feed"></div>
+      <div class="feed-title">${isToday()?'What\'s happened today':'What happened'}</div>
+      <div id="feed">${renderFeedHTML(true)}</div>
     </div>`;
-  document.getElementById('feed').addEventListener('click',e=>{const b=e.target.closest('.rxn');if(b)react(b.dataset.fid,b.dataset.rxn);});
-  renderFeed(true);
-  startPolling();
+
+  document.getElementById('feed').addEventListener('click',e=>{
+    const b=e.target.closest('.rxn');
+    if(b)react(b.dataset.fid,b.dataset.rxn);
+  });
+
+  if(isToday()) startPolling();
+}
+
+function renderFeedHTML(family){
+  const all=[...dayData.events.flatMap(e=>{
+    const evDef=ALL.find(x=>x.id===e.id);
+    return e.log||[];
+  }),...dayData.notes].sort((a,b)=>new Date(b.time)-new Date(a.time));
+  if(!all.length)return'<p class="empty">Nothing logged yet today.</p>';
+  return all.slice(0,40).map(f=>feedItemHTML(f,family)).join('');
 }
 
 function renderSections(){
-  const el=document.getElementById('sections');if(!el)return;
-  el.innerHTML=SECTIONS.map(sec=>`<div class="section"><div class="section-head"><span class="section-badge ${sec.badge}">${sec.label}</span></div><div class="event-grid">${sec.events.map(e=>cardHTML(e,sec.color)).join('')}</div></div>`).join('<div style="height:2px"></div>');
+  const el=document.getElementById('sections');
+  if(!el)return;
+  el.innerHTML=SECTIONS.map(sec=>`
+    <div class="section">
+      <div class="section-head"><span class="section-badge ${sec.badge}">${sec.label}</span></div>
+      <div class="event-grid">${sec.events.map(e=>cardHTML(e,sec.color)).join('')}</div>
+    </div>`).join('<div style="height:2px"></div>');
 }
-function renderFeed(family){
-  const el=document.getElementById('feed');if(!el)return;
-  if(!st.feed.length){el.innerHTML='<p class="empty">Nothing yet — tap an event above to start logging.</p>';return;}
-  el.innerHTML=st.feed.slice(0,30).map(f=>feedHTML(f,family)).join('');
-  if(family){
-    const nc=document.getElementById('note-ct');if(nc)nc.textContent=totalNotes();
-    const pEl=document.querySelector('.sc-val.pts');if(pEl)pEl.textContent=st.totalPts;
-  }
-}
-function logEv(id,col,pts){
+
+// ─── ACTIONS ──────────────────────────────────────────────────────────────────
+function logEvent(id,col,pts){
+  if(!isToday())return;
   const ev=ALL.find(e=>e.id===id);if(!ev)return;
-  st.counts[id]=(st.counts[id]||0)+1;st.totalPts+=pts;
+  let entry=dayData.events.find(e=>e.id===id);
+  if(!entry){entry={id,count:0,log:[]};dayData.events.push(entry);}
+  entry.count=(entry.count||0)+1;
+  dayData.totalPts+=pts;
   const typeMap={mc:'milestone',sc:'setback',nc:'mom',hc:'hospital',ic:'nightshift'};
   const type=typeMap[col]||'milestone';
   const pools={
-    milestone:[`${ev.name}! +${pts} pts. That's huge.`,`${ev.name} ✓ — another step forward.`,`Logged: ${ev.name}. +${pts} pts.`],
+    milestone:[`${ev.name}! +${pts} pts.`,`${ev.name} ✓ — another step forward.`,`Logged: ${ev.name}. +${pts} pts.`],
     setback:[`${ev.name}. +${pts} pts. Nora handles it.`,`Setback: ${ev.name}. Still standing.`],
     mom:[`Nora win: ${ev.name}. +${pts} pts.`,`Mom moment: ${ev.name}. This counts.`],
-    hospital:[`${ev.name}. Hospital being hospital. +${pts} pts.`,`Logged: ${ev.name}. The full experience.`],
-    nightshift:[`Night update: ${ev.name}. +${pts} pts.`,`Logged at some ungodly hour: ${ev.name}.`],
+    hospital:[`${ev.name}. Hospital being hospital. +${pts} pts.`],
+    nightshift:[`Night update: ${ev.name}. +${pts} pts.`],
   };
   const pool=pools[type]||pools.milestone;
-  st.feed.unshift({id:Date.now()+Math.random(),type,text:pool[Math.floor(Math.random()*pool.length)],time:new Date(),pts,reactions:{},myReactions:{}});
-  updateScores();renderSections();renderFeed(false);
-  setSyncStatus('syncing','Saving...');
-  debounceSave();
+  entry.log.push({id:Date.now()+Math.random(),type,text:pool[Math.floor(Math.random()*pool.length)],time:new Date().toISOString(),pts,reactions:{},myReactions:{}});
+  renderSections();
+  document.getElementById('feed').innerHTML=renderFeedHTML(false);
+  scheduleSave();
 }
+
 async function sendNote(){
   const n=(document.getElementById('nn').value||'').trim();
   const t=(document.getElementById('nt').value||'').trim();
   if(!t)return;
-  st.feed.unshift({id:Date.now()+Math.random(),type:'note',text:t,author:n||'Someone who loves you',time:new Date(),reactions:{},myReactions:{}});
-  document.getElementById('nn').value='';document.getElementById('nt').value='';
-  renderFeed(true);
-  await saveToServer();
+  const btn=document.getElementById('send-btn');
+  if(btn)btn.disabled=true;
+  const note={id:Date.now()+Math.random(),type:'note',text:t,author:n||'Someone who loves you',time:new Date().toISOString(),reactions:{},myReactions:{}};
+  dayData.notes.push(note);
+  document.getElementById('nn').value='';
+  document.getElementById('nt').value='';
+  document.getElementById('feed').innerHTML=renderFeedHTML(true);
+  await saveDay(dayData);
+  if(btn)btn.disabled=false;
 }
+
 async function react(fid,rxn){
-  const f=st.feed.find(f=>String(f.id)===String(fid));if(!f)return;
+  const all=[...dayData.events.flatMap(e=>e.log||[]),...dayData.notes];
+  const f=all.find(f=>String(f.id)===String(fid));
+  if(!f)return;
   if(!f.reactions)f.reactions={};if(!f.myReactions)f.myReactions={};
   if(f.myReactions[rxn]){f.reactions[rxn]=Math.max(0,(f.reactions[rxn]||1)-1);delete f.myReactions[rxn];}
   else{f.reactions[rxn]=(f.reactions[rxn]||0)+1;f.myReactions[rxn]=true;}
-  renderFeed(true);
-  await saveToServer();
+  document.getElementById('feed').innerHTML=renderFeedHTML(isFamily());
+  await saveDay(dayData);
 }
 
-loadFromServer().then(()=>{
-  if(isFamily())renderFamily();
-  else renderNora();
-});
+// ─── DATE NAVIGATION ─────────────────────────────────────────────────────────
+async function prevDay(){
+  const idx=allDays.indexOf(viewDate);
+  let prev;
+  if(idx===-1||idx===allDays.length-1){
+    // go to yesterday
+    const d=new Date(viewDate+'T12:00:00');
+    d.setDate(d.getDate()-1);
+    prev=d.toISOString().slice(0,10);
+  } else {
+    prev=allDays[idx+1];
+  }
+  await switchDay(prev);
+}
+
+async function nextDay(){
+  if(isToday())return;
+  const idx=allDays.indexOf(viewDate);
+  if(idx<=0){await switchDay(todayKey());return;}
+  await switchDay(allDays[idx-1]);
+}
+
+async function switchDay(date){
+  viewDate=date;
+  setStatus('saving','Loading...');
+  try{
+    dayData=await fetchDay(date);
+    allDays=await fetchAllDays();
+  }catch(e){setStatus('error','Could not load');}
+  render();
+}
+
+async function refreshDay(){
+  if(isSaving)return;
+  setStatus('saving','Loading...');
+  try{
+    dayData=await fetchDay(viewDate);
+    allDays=await fetchAllDays();
+    setStatus('saved','Live');
+    render();
+  }catch(e){setStatus('error','Could not load');}
+}
+
+// ─── DATE PICKER ─────────────────────────────────────────────────────────────
+function showDatePicker(){
+  const modal=document.getElementById('modal-root');
+  if(!allDays.length){
+    modal.innerHTML=`<div class="modal-bg" onclick="closePicker()"><div class="modal" onclick="event.stopPropagation()">
+      <div class="modal-title">Journey days</div>
+      <p class="no-days">No previous days yet — start logging!</p>
+      <button class="modal-close" onclick="closePicker()">Close</button>
+    </div></div>`;
+    return;
+  }
+  const days=[...new Set([todayKey(),...allDays])].sort().reverse();
+  modal.innerHTML=`<div class="modal-bg" onclick="closePicker()"><div class="modal" onclick="event.stopPropagation()">
+    <div class="modal-title">Journey days</div>
+    <div class="day-list">${days.map(d=>`
+      <div class="day-item${d===viewDate?' active':''}" onclick="pickDay('${d}')">
+        <span class="day-item-date">${fmtDate(d)}${d===todayKey()?' — today':''}</span>
+      </div>`).join('')}
+    </div>
+    <button class="modal-close" onclick="closePicker()">Close</button>
+  </div></div>`;
+}
+
+function closePicker(){document.getElementById('modal-root').innerHTML='';}
+async function pickDay(d){closePicker();await switchDay(d);}
+
+// ─── POLLING ─────────────────────────────────────────────────────────────────
+function startPolling(){
+  if(polling)clearInterval(polling);
+  polling=setInterval(async()=>{
+    if(isSaving||!isToday())return;
+    try{
+      const fresh=await fetchDay(todayKey());
+      dayData=fresh;
+      const feed=document.getElementById('feed');
+      if(feed)feed.innerHTML=renderFeedHTML(true);
+      const sc=document.querySelectorAll('.sc-val');
+      if(sc[0])sc[0].textContent=dayData.totalPts;
+      if(sc[1])sc[1].textContent=totalEventsToday();
+      if(sc[2])sc[2].textContent=dayData.notes.length;
+    }catch(e){}
+  },8000);
+}
+
+// ─── INIT ─────────────────────────────────────────────────────────────────────
+async function init(){
+  try{
+    [dayData,allDays]=await Promise.all([fetchDay(todayKey()),fetchAllDays()]);
+  }catch(e){
+    dayData={date:todayKey(),events:[],notes:[],totalPts:0};
+    allDays=[];
+  }
+  render();
+}
+
+init();
 </script>
 </body>
 </html>
