@@ -482,7 +482,13 @@ function logEvent(id,col,pts){
   entry.log.push({id:Date.now()+Math.random(),type,text:pool[Math.floor(Math.random()*pool.length)],time:new Date().toISOString(),pts,reactions:{},myReactions:{}});
   renderSections();
   document.getElementById('feed').innerHTML=renderFeedHTML(false);
-  scheduleSave();
+  // Update scores immediately
+  const sc=document.querySelectorAll('.sc-val');
+  if(sc[0])sc[0].textContent=dayData.totalPts;
+  if(sc[1])sc[1].textContent=totalEventsToday();
+  if(sc[2])sc[2].textContent=(dayData.notes||[]).length;
+  // Save immediately — don't debounce
+  saveDay(dayData);
 }
 
 async function sendNote(){
@@ -544,14 +550,14 @@ async function switchDay(date){
 }
 
 async function refreshDay(){
-  if(isSaving||saveTimeout)return;
+  if(isSaving)return;
   setStatus('saving','Loading...');
   try{
     const fresh=await fetchDay(viewDate);
-    // Only update if server has MORE data than we do
-    const serverPts=fresh.totalPts||0;
-    const localPts=dayData.totalPts||0;
-    if(serverPts>=localPts){
+    // Protect existing data — only update if server has at least as many events+notes
+    const serverCount=(fresh.events||[]).reduce((a,e)=>a+(e.count||0),0)+(fresh.notes||[]).length;
+    const localCount=totalEventsToday()+(dayData.notes||[]).length;
+    if(serverCount>=localCount){
       dayData=fresh;
     }
     allDays=await fetchAllDays();
