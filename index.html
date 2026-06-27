@@ -7,6 +7,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,wght@0,700;1,700&family=DM+Sans:wght@400;500&display=swap" rel="stylesheet" />
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <style>
     *{box-sizing:border-box;margin:0;padding:0}
     :root{
@@ -38,6 +39,7 @@
     .status-msg.saving{color:var(--gold-d);}
     .status-msg.saved{color:var(--sage-d);}
     .status-msg.error{color:var(--rose-d);}
+    .status-msg.live{color:var(--sage-d);}
     .date-bar{padding:.75rem 1.25rem;border-bottom:1px solid var(--border-md);display:flex;align-items:center;justify-content:space-between;background:var(--cream);}
     .date-nav{display:flex;align-items:center;gap:10px;}
     .date-nav-btn{background:none;border:1.5px solid var(--border-md);border-radius:var(--r-sm);width:30px;height:30px;cursor:pointer;font-size:16px;color:var(--ink2);display:flex;align-items:center;justify-content:center;}
@@ -48,7 +50,7 @@
     .modal{background:var(--warm-white);border-radius:var(--r);padding:1.25rem;width:90%;max-width:360px;max-height:70vh;overflow-y:auto;}
     .modal-title{font-family:'Fraunces',serif;font-size:18px;margin-bottom:1rem;}
     .day-list{display:flex;flex-direction:column;gap:6px;}
-    .day-item{padding:10px 14px;border:1.5px solid var(--border-md);border-radius:var(--r-sm);cursor:pointer;display:flex;justify-content:space-between;align-items:center;}
+    .day-item{padding:10px 14px;border:1.5px solid var(--border-md);border-radius:var(--r-sm);cursor:pointer;}
     .day-item:hover,.day-item.active{border-color:var(--coral);background:var(--coral-l);}
     .day-item-date{font-size:13px;font-weight:500;color:var(--ink);}
     .modal-close{width:100%;margin-top:1rem;padding:10px;border:1.5px solid var(--border-md);border-radius:var(--r-sm);background:none;font-size:14px;color:var(--ink2);cursor:pointer;font-family:'DM Sans',sans-serif;}
@@ -105,7 +107,7 @@
     .fa{font-size:11px;color:var(--ink3);font-style:italic;margin-top:2px;}
     .ftime{font-size:11px;color:var(--ink3);white-space:nowrap;}
     .rxn-row{display:flex;gap:5px;margin-top:6px;flex-wrap:wrap;}
-    .rxn{font-size:12px;padding:2px 9px;border:1.5px solid var(--border-md);border-radius:var(--r-pill);background:var(--warm-white);cursor:pointer;font-family:'DM Sans',sans-serif;color:var(--ink2);transition:all .1s;}
+    .rxn{font-size:12px;padding:2px 9px;border:1.5px solid var(--border-md);border-radius:var(--r-pill);background:var(--warm-white);cursor:pointer;font-family:'DM Sans',sans-serif;color:var(--ink2);}
     .rxn:hover{border-color:var(--peach);background:var(--peach-l);}
     .rxn.on{background:var(--coral-l);border-color:var(--coral);color:var(--coral-d);}
     .note-area{padding:1rem 1.25rem;}
@@ -119,7 +121,7 @@
     .send-btn:disabled{opacity:.5;cursor:default;}
     .empty{font-size:13px;color:var(--ink3);font-style:italic;padding:.5rem 0;}
     .readonly-notice{font-size:12px;color:var(--ink3);background:var(--cream);border-radius:var(--r-sm);padding:8px 12px;margin:1rem 1.25rem 0;text-align:center;}
-    .loading{text-align:center;padding:3rem 1.25rem;font-size:14px;color:var(--ink3);}
+    .loading{text-align:center;padding:3rem;font-size:14px;color:var(--ink3);}
   </style>
 </head>
 <body>
@@ -128,6 +130,12 @@
   <div id="modal-root"></div>
 </div>
 <script>
+// ── SUPABASE SETUP ────────────────────────────────────────────────────────────
+const SUPABASE_URL = 'https://dtyqibznwgydsqzfdqnf.supabase.co';
+const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImR0eXFpYnpud2d5ZHNxemZkcW5mIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODI1NjA0MjQsImV4cCI6MjA5ODEzNjQyNH0.EqA86Ov9fMhRBWmVpW6x5cm01pFVQcuv5w9hPLNkw38';
+const sb = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+// ── EVENT DATA ────────────────────────────────────────────────────────────────
 const M=[
   {id:'extubation',name:'Extubation',pts:30,note:'Breathing on her own!'},
   {id:'chest_drain',name:'Chest drains out',pts:25,note:'One less tube'},
@@ -221,7 +229,13 @@ const SECTIONS=[
   {label:'Night shift',badge:'sb-sage',events:I,color:'ic'},
 ];
 
-// ── UTILITIES ────────────────────────────────────────────────────────────────
+// ── STATE ─────────────────────────────────────────────────────────────────────
+let data = {date:'',events:[],notes:[],total_pts:0};
+let viewDate = todayKey();
+let allDays = [];
+let realtimeChannel = null;
+
+// ── UTILITIES ─────────────────────────────────────────────────────────────────
 function todayKey(){return new Date().toISOString().slice(0,10);}
 function fmtDate(d){return new Date(d+'T12:00:00').toLocaleDateString('en-US',{weekday:'long',month:'long',day:'numeric'});}
 function fmtTime(d){
@@ -230,70 +244,74 @@ function fmtTime(d){
   if(diff<1440)return Math.floor(diff/60)+'h ago';return Math.floor(diff/1440)+'d ago';
 }
 function isFamily(){return new URLSearchParams(window.location.search).get('view')==='family';}
-
-// ── STATE ─────────────────────────────────────────────────────────────────────
-// Server is ALWAYS the source of truth.
-// We keep a local copy only so we can render without waiting.
-let serverData = {date:todayKey(),events:[],notes:[],totalPts:0};
-let viewDate = todayKey();
-let allDays = [];
-let polling = null;
-
-// ── API ───────────────────────────────────────────────────────────────────────
-async function apiGet(date){
-  const r=await fetch(`/api/state?date=${date}&t=${Date.now()}`,{cache:'no-store'});
-  if(!r.ok) throw new Error('GET failed');
-  const d=await r.json();
-  return {
-    date: d.date||date,
-    events: Array.isArray(d.events)?d.events:[],
-    notes: Array.isArray(d.notes)?d.notes:[],
-    totalPts: typeof d.totalPts==='number'?d.totalPts:0,
-  };
+function isToday(){return viewDate===todayKey();}
+function setStatus(type,msg){
+  const el=document.getElementById('status-msg');
+  if(el){el.className='status-msg '+type;el.textContent=msg;}
 }
 
-async function apiPost(data){
-  const r=await fetch('/api/state',{
-    method:'POST',
-    headers:{'Content-Type':'application/json'},
-    body:JSON.stringify(data),
-  });
-  if(!r.ok) throw new Error('POST failed');
-  return r.json();
+// ── DATABASE ──────────────────────────────────────────────────────────────────
+async function loadDay(date){
+  const{data:row,error}=await sb.from('journey_days').select('*').eq('date',date).single();
+  if(error||!row){
+    data={date,events:[],notes:[],total_pts:0};
+  } else {
+    data={
+      date:row.date,
+      events:Array.isArray(row.events)?row.events:[],
+      notes:Array.isArray(row.notes)?row.notes:[],
+      total_pts:row.total_pts||0,
+    };
+  }
 }
 
-async function apiDays(){
-  const r=await fetch(`/api/state?dates=all&t=${Date.now()}`,{cache:'no-store'});
-  if(!r.ok) return [];
-  const j=await r.json();
-  return j.days||[];
+async function saveDay(){
+  setStatus('saving','Saving...');
+  const{error}=await sb.from('journey_days').upsert({
+    date:data.date,
+    events:data.events,
+    notes:data.notes,
+    total_pts:data.total_pts,
+    updated_at:new Date().toISOString(),
+  },{onConflict:'date'});
+  if(error){setStatus('error','Save failed');}
+  else{setStatus('saved','Saved ✓');}
+}
+
+async function loadAllDays(){
+  const{data:rows}=await sb.from('journey_days').select('date').order('date',{ascending:false});
+  allDays=(rows||[]).map(r=>r.date);
+}
+
+// ── REAL-TIME ─────────────────────────────────────────────────────────────────
+function subscribeRealtime(){
+  if(realtimeChannel) sb.removeChannel(realtimeChannel);
+  realtimeChannel=sb.channel('journey-updates')
+    .on('postgres_changes',{
+      event:'*',
+      schema:'public',
+      table:'journey_days',
+      filter:`date=eq.${viewDate}`,
+    }, payload=>{
+      const row=payload.new;
+      if(!row)return;
+      data={
+        date:row.date,
+        events:Array.isArray(row.events)?row.events:[],
+        notes:Array.isArray(row.notes)?row.notes:[],
+        total_pts:row.total_pts||0,
+      };
+      setStatus('live','● Live');
+      render();
+    })
+    .subscribe();
 }
 
 // ── RENDER ────────────────────────────────────────────────────────────────────
-function totalEvents(){return(serverData.events||[]).reduce((a,e)=>a+(e.count||0),0);}
-
-function scoreHTML(){
-  return`<div class="score-row">
-    <div class="score-cell"><div class="sc-label">Total pts</div><div class="sc-val">${serverData.totalPts}</div></div>
-    <div class="score-cell"><div class="sc-label">Events</div><div class="sc-val">${totalEvents()}</div></div>
-    <div class="score-cell"><div class="sc-label">Notes</div><div class="sc-val">${(serverData.notes||[]).length}</div></div>
-  </div>`;
-}
-
-function dateBarHTML(){
-  const isToday=viewDate===todayKey();
-  return`<div class="date-bar">
-    <div class="date-nav">
-      <button class="date-nav-btn" onclick="prevDay()">‹</button>
-      <span class="date-label" onclick="showDatePicker()">${fmtDate(viewDate)}</span>
-      <button class="date-nav-btn" onclick="nextDay()" ${isToday?'disabled':''}>›</button>
-    </div>
-    <div class="date-pts">${isToday?'today':'read only'}</div>
-  </div>`;
-}
+function totalEvents(){return(data.events||[]).reduce((a,e)=>a+(e.count||0),0);}
 
 function cardHTML(ev,col){
-  const entry=(serverData.events||[]).find(e=>e.id===ev.id);
+  const entry=(data.events||[]).find(e=>e.id===ev.id);
   const count=entry?entry.count:0;
   const logged=count>0;
   const badge=count>1?`<div class="ec-badge">×${count}</div>`:logged?`<div class="ec-badge">✓</div>`:`<div class="ec-badge">+${ev.pts}</div>`;
@@ -302,16 +320,12 @@ function cardHTML(ev,col){
   </div>`;
 }
 
-function allFeedItems(){
-  const evItems=(serverData.events||[]).flatMap(e=>e.log||[]);
-  const noteItems=(serverData.notes||[]);
-  return [...evItems,...noteItems].sort((a,b)=>new Date(b.time)-new Date(a.time));
-}
-
 function feedHTML(family){
-  const items=allFeedItems();
-  if(!items.length) return'<p class="empty">Nothing logged yet today.</p>';
-  return items.slice(0,40).map(f=>{
+  const evItems=(data.events||[]).flatMap(e=>e.log||[]);
+  const noteItems=(data.notes||[]);
+  const all=[...evItems,...noteItems].sort((a,b)=>new Date(b.time)-new Date(a.time));
+  if(!all.length)return'<p class="empty">Nothing logged yet today.</p>';
+  return all.slice(0,40).map(f=>{
     const rxc=f.reactions||{},myr=f.myReactions||{};
     const rxns=family?`<div class="rxn-row">${EMOJIS.map(e=>{
       const c=rxc[e.id]||0,mine=myr[e.id];
@@ -324,28 +338,43 @@ function feedHTML(family){
   }).join('');
 }
 
+function render(){
+  if(isFamily()) renderFamily();
+  else renderNora();
+}
+
 function renderNora(){
-  const isToday=viewDate===todayKey();
   document.getElementById('root').innerHTML=`
     <div class="hero">
       <div class="hero-title"><span>Sloane's</span> heart journey</div>
       <div class="hero-sub">Logging the wild ride, one moment at a time</div>
-      ${scoreHTML()}
+      <div class="score-row">
+        <div class="score-cell"><div class="sc-label">Total pts</div><div class="sc-val">${data.total_pts}</div></div>
+        <div class="score-cell"><div class="sc-label">Events</div><div class="sc-val">${totalEvents()}</div></div>
+        <div class="score-cell"><div class="sc-label">Notes</div><div class="sc-val">${(data.notes||[]).length}</div></div>
+      </div>
     </div>
     <div class="status-bar">
-      <span class="status-msg saved" id="status-msg">Live</span>
-      <button style="font-size:12px;color:var(--coral);background:none;border:none;cursor:pointer;text-decoration:underline;font-family:'DM Sans',sans-serif" onclick="loadDay(viewDate)">Refresh</button>
+      <span class="status-msg live" id="status-msg">● Live</span>
+      <button style="font-size:12px;color:var(--coral);background:none;border:none;cursor:pointer;text-decoration:underline;font-family:'DM Sans',sans-serif" onclick="switchDay(viewDate)">Refresh</button>
     </div>
-    ${dateBarHTML()}
-    ${!isToday?`<div class="readonly-notice">📅 Viewing ${fmtDate(viewDate)} — this day is read only</div>`:''}
-    ${isToday?`<div id="sections"></div>`:''}
+    <div class="date-bar">
+      <div class="date-nav">
+        <button class="date-nav-btn" onclick="prevDay()">‹</button>
+        <span class="date-label" onclick="showDatePicker()">${fmtDate(viewDate)}</span>
+        <button class="date-nav-btn" onclick="nextDay()" ${isToday()?'disabled':''}>›</button>
+      </div>
+      <div class="date-pts">${isToday()?'today':'read only'}</div>
+    </div>
+    ${!isToday()?`<div class="readonly-notice">📅 Viewing ${fmtDate(viewDate)} — this day is read only</div>`:''}
+    ${isToday()?`<div id="sections"></div>`:''}
     <div class="divider"></div>
     <div class="feed-wrap">
-      <div class="feed-title">${isToday?"Today's log":'What happened'}</div>
+      <div class="feed-title">${isToday()?"Today's log":'What happened'}</div>
       <div id="feed">${feedHTML(false)}</div>
     </div>`;
 
-  if(isToday){
+  if(isToday()){
     renderSections();
     document.getElementById('sections').addEventListener('click',e=>{
       const c=e.target.closest('.ec');
@@ -359,19 +388,29 @@ function renderNora(){
 }
 
 function renderFamily(){
-  const isToday=viewDate===todayKey();
   document.getElementById('root').innerHTML=`
     <div class="hero fam">
       <div class="hero-title"><span>Sloane's</span> heart journey</div>
       <div class="hero-sub">Following along with Nora & Sloane <span class="fam-pill">Family & friends</span></div>
-      ${scoreHTML()}
+      <div class="score-row">
+        <div class="score-cell"><div class="sc-label">Total pts</div><div class="sc-val">${data.total_pts}</div></div>
+        <div class="score-cell"><div class="sc-label">Events</div><div class="sc-val">${totalEvents()}</div></div>
+        <div class="score-cell"><div class="sc-label">Notes</div><div class="sc-val">${(data.notes||[]).length}</div></div>
+      </div>
     </div>
     <div class="status-bar">
-      <span class="status-msg saved" id="status-msg">Updates every 8 seconds</span>
-      <button style="font-size:12px;color:var(--coral);background:none;border:none;cursor:pointer;text-decoration:underline;font-family:'DM Sans',sans-serif" onclick="loadDay(viewDate)">Refresh now</button>
+      <span class="status-msg live" id="status-msg">● Live</span>
+      <button style="font-size:12px;color:var(--coral);background:none;border:none;cursor:pointer;text-decoration:underline;font-family:'DM Sans',sans-serif" onclick="switchDay(viewDate)">Refresh</button>
     </div>
-    ${dateBarHTML()}
-    ${isToday?`<div class="note-area">
+    <div class="date-bar">
+      <div class="date-nav">
+        <button class="date-nav-btn" onclick="prevDay()">‹</button>
+        <span class="date-label" onclick="showDatePicker()">${fmtDate(viewDate)}</span>
+        <button class="date-nav-btn" onclick="nextDay()" ${isToday()?'disabled':''}>›</button>
+      </div>
+      <div class="date-pts">${isToday()?'live':'past day'}</div>
+    </div>
+    ${isToday()?`<div class="note-area">
       <div class="note-lbl">Leave a note for Nora</div>
       <div class="note-inputs">
         <input class="ni-name" id="nn" placeholder="Your name" maxlength="40"/>
@@ -381,7 +420,7 @@ function renderFamily(){
     </div>`:''}
     <div class="divider"></div>
     <div class="feed-wrap">
-      <div class="feed-title">${isToday?"What's happened today":'What happened'}</div>
+      <div class="feed-title">${isToday()?"What's happened today":'What happened'}</div>
       <div id="feed">${feedHTML(true)}</div>
     </div>`;
 
@@ -401,24 +440,16 @@ function renderSections(){
     </div>`).join('<div style="height:2px"></div>');
 }
 
-function render(){
-  if(isFamily()) renderFamily();
-  else renderNora();
-}
-
 // ── ACTIONS ───────────────────────────────────────────────────────────────────
 async function logEvent(id,col,pts){
-  if(viewDate!==todayKey())return;
+  if(!isToday())return;
   const ev=ALL.find(e=>e.id===id);
   if(!ev)return;
 
-  setStatus('saving','Saving...');
-
-  // Update local copy
-  let entry=(serverData.events||[]).find(e=>e.id===id);
-  if(!entry){entry={id,count:0,log:[]};serverData.events.push(entry);}
+  let entry=(data.events||[]).find(e=>e.id===id);
+  if(!entry){entry={id,count:0,log:[]};data.events.push(entry);}
   entry.count=(entry.count||0)+1;
-  serverData.totalPts+=pts;
+  data.total_pts+=pts;
 
   const typeMap={mc:'milestone',sc:'setback',nc:'mom',hc:'hospital',ic:'nightshift'};
   const type=typeMap[col]||'milestone';
@@ -430,22 +461,19 @@ async function logEvent(id,col,pts){
     nightshift:[`Night update: ${ev.name}. +${pts} pts.`],
   };
   const pool=pools[type]||pools.milestone;
-  entry.log.push({id:Date.now()+Math.random(),type,text:pool[Math.floor(Math.random()*pool.length)],time:new Date().toISOString(),pts,reactions:{},myReactions:{}});
+  entry.log.push({
+    id:Date.now()+Math.random(),type,
+    text:pool[Math.floor(Math.random()*pool.length)],
+    time:new Date().toISOString(),pts,reactions:{},myReactions:{}
+  });
 
-  // Render immediately from local copy
   renderSections();
   document.getElementById('feed').innerHTML=feedHTML(false);
   const sc=document.querySelectorAll('.sc-val');
-  if(sc[0])sc[0].textContent=serverData.totalPts;
+  if(sc[0])sc[0].textContent=data.total_pts;
   if(sc[1])sc[1].textContent=totalEvents();
 
-  // Save to server
-  try{
-    await apiPost(serverData);
-    setStatus('saved','Saved ✓');
-  }catch(e){
-    setStatus('error','Save failed — try again');
-  }
+  await saveDay();
 }
 
 async function sendNote(){
@@ -454,34 +482,26 @@ async function sendNote(){
   if(!t)return;
   const btn=document.getElementById('send-btn');
   if(btn)btn.disabled=true;
-  setStatus('saving','Sending...');
 
-  const note={id:Date.now()+Math.random(),type:'note',text:t,author:n||'Someone who loves you',time:new Date().toISOString(),reactions:{},myReactions:{}};
+  const note={
+    id:Date.now()+Math.random(),type:'note',
+    text:t,author:n||'Someone who loves you',
+    time:new Date().toISOString(),reactions:{},myReactions:{}
+  };
+  data.notes.push(note);
 
-  // Add to local copy
-  serverData.notes.push(note);
+  document.getElementById('nn').value='';
+  document.getElementById('nt').value='';
+  document.getElementById('feed').innerHTML=feedHTML(true);
+  const sc=document.querySelectorAll('.sc-val');
+  if(sc[2])sc[2].textContent=data.notes.length;
 
-  // Save to server FIRST
-  try{
-    await apiPost(serverData);
-    document.getElementById('nn').value='';
-    document.getElementById('nt').value='';
-    // Re-render from what we just saved
-    document.getElementById('feed').innerHTML=feedHTML(true);
-    const sc=document.querySelectorAll('.sc-val');
-    if(sc[2])sc[2].textContent=serverData.notes.length;
-    setStatus('saved','Sent ✓');
-  }catch(e){
-    // Remove from local if save failed
-    serverData.notes=serverData.notes.filter(x=>x.id!==note.id);
-    setStatus('error','Send failed — try again');
-  }finally{
-    if(btn)btn.disabled=false;
-  }
+  await saveDay();
+  if(btn)btn.disabled=false;
 }
 
 async function react(fid,rxn){
-  const all=[...(serverData.events||[]).flatMap(e=>e.log||[]),...(serverData.notes||[])];
+  const all=[...(data.events||[]).flatMap(e=>e.log||[]),...(data.notes||[])];
   const f=all.find(f=>String(f.id)===String(fid));
   if(!f)return;
   if(!f.reactions)f.reactions={};
@@ -489,47 +509,34 @@ async function react(fid,rxn){
   if(f.myReactions[rxn]){
     f.reactions[rxn]=Math.max(0,(f.reactions[rxn]||1)-1);
     delete f.myReactions[rxn];
-  }else{
+  } else {
     f.reactions[rxn]=(f.reactions[rxn]||0)+1;
     f.myReactions[rxn]=true;
   }
   document.getElementById('feed').innerHTML=feedHTML(isFamily());
-  try{ await apiPost(serverData); }catch(e){}
+  await saveDay();
 }
 
-// ── LOAD / SYNC ───────────────────────────────────────────────────────────────
-function setStatus(type,msg){
-  const el=document.getElementById('status-msg');
-  if(!el)return;
-  el.className='status-msg '+type;
-  el.textContent=msg;
-}
-
-async function loadDay(date){
-  setStatus('saving','Loading...');
-  try{
-    serverData=await apiGet(date);
-    render();
-    setStatus('saved','Live');
-  }catch(e){
-    setStatus('error','Could not load');
-  }
+// ── NAVIGATION ────────────────────────────────────────────────────────────────
+async function switchDay(date){
+  viewDate=date;
+  await loadDay(date);
+  render();
+  subscribeRealtime();
 }
 
 async function prevDay(){
   const d=new Date(viewDate+'T12:00:00');
   d.setDate(d.getDate()-1);
-  viewDate=d.toISOString().slice(0,10);
-  await loadDay(viewDate);
+  await switchDay(d.toISOString().slice(0,10));
 }
 
 async function nextDay(){
-  if(viewDate===todayKey())return;
+  if(isToday())return;
   const d=new Date(viewDate+'T12:00:00');
   d.setDate(d.getDate()+1);
   const next=d.toISOString().slice(0,10);
-  viewDate=next>todayKey()?todayKey():next;
-  await loadDay(viewDate);
+  await switchDay(next>todayKey()?todayKey():next);
 }
 
 function showDatePicker(){
@@ -539,7 +546,7 @@ function showDatePicker(){
     <div class="modal-title">Journey days</div>
     <div class="day-list">${days.map(d=>`
       <div class="day-item${d===viewDate?' active':''}" onclick="pickDay('${d}')">
-        <span class="day-item-date">${fmtDate(d)}${d===todayKey()?' — today':''}</span>
+        <div class="day-item-date">${fmtDate(d)}${d===todayKey()?' — today':''}</div>
       </div>`).join('')}
     </div>
     <button class="modal-close" onclick="closePicker()">Close</button>
@@ -547,36 +554,13 @@ function showDatePicker(){
 }
 
 function closePicker(){document.getElementById('modal-root').innerHTML='';}
-async function pickDay(d){closePicker();viewDate=d;await loadDay(d);}
+async function pickDay(d){closePicker();await switchDay(d);}
 
-function startPolling(){
-  if(polling)clearInterval(polling);
-  polling=setInterval(async()=>{
-    if(viewDate!==todayKey())return;
-    try{
-      const fresh=await apiGet(todayKey());
-      serverData=fresh;
-      // Only update the feed and scores — don't full re-render (avoids flicker)
-      const feed=document.getElementById('feed');
-      if(feed) feed.innerHTML=feedHTML(isFamily());
-      const sc=document.querySelectorAll('.sc-val');
-      if(sc[0])sc[0].textContent=serverData.totalPts;
-      if(sc[1])sc[1].textContent=totalEvents();
-      if(sc[2])sc[2].textContent=(serverData.notes||[]).length;
-      // For Nora, also update the event cards
-      if(!isFamily()) renderSections();
-    }catch(e){}
-  },8000);
-}
-
+// ── INIT ──────────────────────────────────────────────────────────────────────
 async function init(){
-  try{
-    [serverData,allDays]=await Promise.all([apiGet(todayKey()),apiDays()]);
-  }catch(e){
-    serverData={date:todayKey(),events:[],notes:[],totalPts:0};
-  }
+  await Promise.all([loadDay(todayKey()),loadAllDays()]);
   render();
-  startPolling();
+  subscribeRealtime();
 }
 
 init();
