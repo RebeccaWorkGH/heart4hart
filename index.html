@@ -296,10 +296,16 @@ async function saveDay(data){
       headers:{'Content-Type':'application/json'},
       body:JSON.stringify(data)
     });
-    if(r.ok){setStatus('saved','Saved ✓');}
-    else{setStatus('error','Save failed');}
-  }catch(e){setStatus('error','Save failed');}
-  finally{isSaving=false;}
+    if(r.ok){
+      setStatus('saved','Saved ✓');
+    } else {
+      setStatus('error','Save failed');
+    }
+  }catch(e){
+    setStatus('error','Save failed');
+  }finally{
+    isSaving=false;
+  }
 }
 function scheduleSave(){
   clearTimeout(saveTimeout);
@@ -550,20 +556,9 @@ async function switchDay(date){
 }
 
 async function refreshDay(){
-  if(isSaving)return;
   setStatus('saving','Loading...');
-  try{
-    const fresh=await fetchDay(viewDate);
-    // Protect existing data — only update if server has at least as many events+notes
-    const serverCount=(fresh.events||[]).reduce((a,e)=>a+(e.count||0),0)+(fresh.notes||[]).length;
-    const localCount=totalEventsToday()+(dayData.notes||[]).length;
-    if(serverCount>=localCount){
-      dayData=fresh;
-    }
-    allDays=await fetchAllDays();
-    setStatus('saved','Live');
-    render();
-  }catch(e){setStatus('error','Could not load');}
+  await syncFromServer();
+  allDays=await fetchAllDays();
 }
 
 // ─── DATE PICKER ─────────────────────────────────────────────────────────────
@@ -596,22 +591,8 @@ async function pickDay(d){closePicker();await switchDay(d);}
 function startPolling(){
   if(polling)clearInterval(polling);
   polling=setInterval(async()=>{
-    if(isSaving||saveTimeout||!isToday())return;
-    try{
-      const fresh=await fetchDay(todayKey());
-      // Merge: only update if server has more data
-      const serverTotal=(fresh.events||[]).reduce((a,e)=>a+(e.count||0),0)+(fresh.notes||[]).length;
-      const localTotal=totalEventsToday()+(dayData.notes||[]).length;
-      if(serverTotal>=localTotal){
-        dayData=fresh;
-      }
-      const feed=document.getElementById('feed');
-      if(feed)feed.innerHTML=renderFeedHTML(isFamily());
-      const sc=document.querySelectorAll('.sc-val');
-      if(sc[0])sc[0].textContent=dayData.totalPts;
-      if(sc[1])sc[1].textContent=totalEventsToday();
-      if(sc[2])sc[2].textContent=(dayData.notes||[]).length;
-    }catch(e){}
+    if(isSaving)return;
+    await syncFromServer();
   },8000);
 }
 
@@ -624,6 +605,17 @@ async function init(){
     allDays=[];
   }
   render();
+}
+
+// Called by polling and refresh — always takes server data
+async function syncFromServer(){
+  if(isSaving)return;
+  try{
+    const fresh=await fetchDay(viewDate);
+    dayData=fresh;
+    render();
+    setStatus('saved','Live');
+  }catch(e){setStatus('error','Could not connect');}
 }
 
 init();
