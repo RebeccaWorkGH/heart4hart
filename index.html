@@ -544,10 +544,16 @@ async function switchDay(date){
 }
 
 async function refreshDay(){
-  if(isSaving)return;
+  if(isSaving||saveTimeout)return;
   setStatus('saving','Loading...');
   try{
-    dayData=await fetchDay(viewDate);
+    const fresh=await fetchDay(viewDate);
+    // Only update if server has MORE data than we do
+    const serverPts=fresh.totalPts||0;
+    const localPts=dayData.totalPts||0;
+    if(serverPts>=localPts){
+      dayData=fresh;
+    }
     allDays=await fetchAllDays();
     setStatus('saved','Live');
     render();
@@ -584,16 +590,21 @@ async function pickDay(d){closePicker();await switchDay(d);}
 function startPolling(){
   if(polling)clearInterval(polling);
   polling=setInterval(async()=>{
-    if(isSaving||!isToday())return;
+    if(isSaving||saveTimeout||!isToday())return;
     try{
       const fresh=await fetchDay(todayKey());
-      dayData=fresh;
+      // Merge: only update if server has more data
+      const serverTotal=(fresh.events||[]).reduce((a,e)=>a+(e.count||0),0)+(fresh.notes||[]).length;
+      const localTotal=totalEventsToday()+(dayData.notes||[]).length;
+      if(serverTotal>=localTotal){
+        dayData=fresh;
+      }
       const feed=document.getElementById('feed');
-      if(feed)feed.innerHTML=renderFeedHTML(true);
+      if(feed)feed.innerHTML=renderFeedHTML(isFamily());
       const sc=document.querySelectorAll('.sc-val');
       if(sc[0])sc[0].textContent=dayData.totalPts;
       if(sc[1])sc[1].textContent=totalEventsToday();
-      if(sc[2])sc[2].textContent=dayData.notes.length;
+      if(sc[2])sc[2].textContent=(dayData.notes||[]).length;
     }catch(e){}
   },8000);
 }
