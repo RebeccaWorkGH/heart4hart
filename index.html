@@ -130,12 +130,10 @@
   <div id="modal-root"></div>
 </div>
 <script>
-// ── SUPABASE SETUP ────────────────────────────────────────────────────────────
 const SUPABASE_URL = 'https://dtyqibznwgydsqzfdqnf.supabase.co';
 const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImR0eXFpYnpud2d5ZHNxemZkcW5mIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODI1NjA0MjQsImV4cCI6MjA5ODEzNjQyNH0.EqA86Ov9fMhRBWmVpW6x5cm01pFVQcuv5w9hPLNkw38';
 const sb = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
-// ── EVENT DATA ────────────────────────────────────────────────────────────────
 const M=[
   {id:'sits_up',name:'Sat up in bed',pts:15,note:'Gravity: mastered'},
   {id:'first_steps',name:'Walked today',pts:40,note:'Getting those steps in baby'},
@@ -154,7 +152,6 @@ const M=[
   {id:'home',name:'Home!',pts:100,note:'The big one'},
 ];
 const S=[
- 
   {id:'reintubation',name:'Reintubation',pts:20,note:'Back on the vent'},
   {id:'rejection',name:'Rejection scare',pts:25,note:'Heart throwing a tantrum'},
   {id:'fever',name:'Mystery fever',pts:10,note:'Cultures sent. Waiting'},
@@ -193,8 +190,6 @@ const H=[
   {id:'mystery_smell',name:'Unexplained hallway smell',pts:5,note:'No one confirms what it is'},
   {id:'loud_neighbors',name:'Very loud neighboring family',pts:5,note:'They are also going through it'},
   {id:'draw_3am',name:'3am blood draw',pts:10,note:'Could not wait till morning'},
-];
-const I=[
   {id:'false_alarm',name:'False alarm — all fine',pts:10,note:'Heart 10 years shorter'},
   {id:'vitals_again',name:'Woken for routine vitals',pts:5,note:'7th time this shift'},
   {id:'new_nurse',name:'New nurse, learning setup',pts:10,note:'Helpful. Very thorough. Slow.'},
@@ -202,29 +197,25 @@ const I=[
   {id:'shift_chaos',name:'Shift change chaos',pts:5,note:'The handover ballet'},
   {id:'call_ignored',name:'Call light ignored 20 mins',pts:10,note:'A lesson in patience'},
   {id:'team_2am',name:'Whole team appeared at 2am',pts:15,note:'For unexplained reasons'},
-  {id:'restless_night',name:'Sloane restless all night',pts:10,note:'Nora was right there'},
   {id:'nora_slept',name:'Nora actually slept through',pts:20,note:'The body just gave up'},
   {id:'great_vitals',name:'Great vitals at midnight',pts:15,note:'Numbers being cooperative'},
   {id:'quiet_night',name:'Quiet night — actually quiet',pts:20,note:'A gift. Cherished.'},
 ];
 
-const ALL=[...M,...S,...N,...H,...I];
+const ALL=[...M,...S,...N,...H];
 const EMOJIS=[{id:'h',icon:'♥',l:'love'},{id:'f',icon:'✊',l:'with you'},{id:'s',icon:'★',l:'amazing'},{id:'u',icon:'↑',l:'yes!'},{id:'c',icon:'✦',l:'celebrate'}];
 const SECTIONS=[
   {label:"Sloane's milestones",badge:'sb-coral',events:M,color:'mc'},
   {label:'Setbacks',badge:'sb-rose',events:S,color:'sc'},
   {label:"Nora's moments",badge:'sb-gold',events:N,color:'nc'},
-  {label:'Hospital life',badge:'sb-peach',events:H,color:'hc'},
-  {label:'Night shift',badge:'sb-sage',events:I,color:'ic'},
+  {label:'Hospital & night shift',badge:'sb-peach',events:H,color:'hc'},
 ];
 
-// ── STATE ─────────────────────────────────────────────────────────────────────
 let data = {date:'',events:[],notes:[],total_pts:0};
 let viewDate = todayKey();
 let allDays = [];
 let realtimeChannel = null;
 
-// ── UTILITIES ─────────────────────────────────────────────────────────────────
 function todayKey(){return new Date().toISOString().slice(0,10);}
 function fmtDate(d){return new Date(d+'T12:00:00').toLocaleDateString('en-US',{weekday:'long',month:'long',day:'numeric'});}
 function fmtTime(d){
@@ -239,7 +230,6 @@ function setStatus(type,msg){
   if(el){el.className='status-msg '+type;el.textContent=msg;}
 }
 
-// ── DATABASE ──────────────────────────────────────────────────────────────────
 async function loadDay(date){
   const{data:row,error}=await sb.from('journey_days').select('*').eq('date',date).single();
   if(error||!row){
@@ -272,14 +262,11 @@ async function loadAllDays(){
   allDays=(rows||[]).map(r=>r.date);
 }
 
-// ── REAL-TIME ─────────────────────────────────────────────────────────────────
 function subscribeRealtime(){
   if(realtimeChannel) sb.removeChannel(realtimeChannel);
   realtimeChannel=sb.channel('journey-updates')
     .on('postgres_changes',{
-      event:'*',
-      schema:'public',
-      table:'journey_days',
+      event:'*',schema:'public',table:'journey_days',
       filter:`date=eq.${viewDate}`,
     }, payload=>{
       const row=payload.new;
@@ -296,14 +283,13 @@ function subscribeRealtime(){
     .subscribe();
 }
 
-// ── RENDER ────────────────────────────────────────────────────────────────────
 function totalEvents(){return(data.events||[]).reduce((a,e)=>a+(e.count||0),0);}
 
 function cardHTML(ev,col){
   const entry=(data.events||[]).find(e=>e.id===ev.id);
   const count=entry?entry.count:0;
   const logged=count>0;
-  const badge=count>1?`<div class="ec-badge">×${count}</div>`:logged?`<div class="ec-badge">✓</div>`:`<div class="ec-badge">+${ev.pts}</div>`;
+  const badge=logged?`<div class="ec-badge">✓</div>`:`<div class="ec-badge">+${ev.pts}</div>`;
   return`<div class="ec ${col}${logged?' logged':''}" data-id="${ev.id}" data-col="${col}" data-pts="${ev.pts}">
     <div class="ec-name">${ev.name}</div><div class="ec-note">${ev.note}</div>${badge}
   </div>`;
@@ -362,7 +348,6 @@ function renderNora(){
       <div class="feed-title">${isToday()?"Today's log":'What happened'}</div>
       <div id="feed">${feedHTML(false)}</div>
     </div>`;
-
   if(isToday()){
     renderSections();
     document.getElementById('sections').addEventListener('click',e=>{
@@ -412,7 +397,6 @@ function renderFamily(){
       <div class="feed-title">${isToday()?"What's happened today":'What happened'}</div>
       <div id="feed">${feedHTML(true)}</div>
     </div>`;
-
   document.getElementById('feed').addEventListener('click',e=>{
     const b=e.target.closest('.rxn');
     if(b) react(b.dataset.fid,b.dataset.rxn);
@@ -429,39 +413,40 @@ function renderSections(){
     </div>`).join('<div style="height:2px"></div>');
 }
 
-// ── ACTIONS ───────────────────────────────────────────────────────────────────
 async function logEvent(id,col,pts){
   if(!isToday())return;
   const ev=ALL.find(e=>e.id===id);
   if(!ev)return;
-
   let entry=(data.events||[]).find(e=>e.id===id);
-  if(!entry){entry={id,count:0,log:[]};data.events.push(entry);}
-  entry.count=(entry.count||0)+1;
-  data.total_pts+=pts;
-
-  const typeMap={mc:'milestone',sc:'setback',nc:'mom',hc:'hospital',ic:'nightshift'};
-  const type=typeMap[col]||'milestone';
-  const pools={
-    milestone:[`${ev.name}! +${pts} pts.`,`${ev.name} ✓ — another step forward.`],
-    setback:[`${ev.name}. +${pts} pts. Nora handles it.`,`Setback: ${ev.name}. Still standing.`],
-    mom:[`Nora win: ${ev.name}. +${pts} pts.`,`Mom moment: ${ev.name}. This counts.`],
-    hospital:[`${ev.name}. Hospital being hospital. +${pts} pts.`],
-    nightshift:[`Night update: ${ev.name}. +${pts} pts.`],
-  };
-  const pool=pools[type]||pools.milestone;
-  entry.log.push({
-    id:Date.now()+Math.random(),type,
-    text:pool[Math.floor(Math.random()*pool.length)],
-    time:new Date().toISOString(),pts,reactions:{},myReactions:{}
-  });
-
+  if(entry&&entry.count>0){
+    // Toggle off
+    data.total_pts-=(entry.count*pts);
+    data.events=data.events.filter(e=>e.id!==id);
+  } else {
+    // Toggle on
+    if(!entry){entry={id,count:0,log:[]};data.events.push(entry);}
+    entry.count=1;
+    data.total_pts+=pts;
+    const typeMap={mc:'milestone',sc:'setback',nc:'mom',hc:'hospital'};
+    const type=typeMap[col]||'milestone';
+    const pools={
+      milestone:[`${ev.name}! +${pts} pts.`,`${ev.name} ✓ — another step forward.`],
+      setback:[`${ev.name}. +${pts} pts. Nora handles it.`,`Setback: ${ev.name}. Still standing.`],
+      mom:[`Nora win: ${ev.name}. +${pts} pts.`,`Mom moment: ${ev.name}. This counts.`],
+      hospital:[`${ev.name}. +${pts} pts.`],
+    };
+    const pool=pools[type]||pools.milestone;
+    entry.log=[{
+      id:Date.now()+Math.random(),type,
+      text:pool[Math.floor(Math.random()*pool.length)],
+      time:new Date().toISOString(),pts,reactions:{},myReactions:{}
+    }];
+  }
   renderSections();
   document.getElementById('feed').innerHTML=feedHTML(false);
   const sc=document.querySelectorAll('.sc-val');
   if(sc[0])sc[0].textContent=data.total_pts;
   if(sc[1])sc[1].textContent=totalEvents();
-
   await saveDay();
 }
 
@@ -471,20 +456,17 @@ async function sendNote(){
   if(!t)return;
   const btn=document.getElementById('send-btn');
   if(btn)btn.disabled=true;
-
   const note={
     id:Date.now()+Math.random(),type:'note',
     text:t,author:n||'Someone who loves you',
     time:new Date().toISOString(),reactions:{},myReactions:{}
   };
   data.notes.push(note);
-
   document.getElementById('nn').value='';
   document.getElementById('nt').value='';
   document.getElementById('feed').innerHTML=feedHTML(true);
   const sc=document.querySelectorAll('.sc-val');
   if(sc[2])sc[2].textContent=data.notes.length;
-
   await saveDay();
   if(btn)btn.disabled=false;
 }
@@ -506,7 +488,6 @@ async function react(fid,rxn){
   await saveDay();
 }
 
-// ── NAVIGATION ────────────────────────────────────────────────────────────────
 async function switchDay(date){
   viewDate=date;
   await loadDay(date);
@@ -545,7 +526,6 @@ function showDatePicker(){
 function closePicker(){document.getElementById('modal-root').innerHTML='';}
 async function pickDay(d){closePicker();await switchDay(d);}
 
-// ── INIT ──────────────────────────────────────────────────────────────────────
 async function init(){
   await Promise.all([loadDay(todayKey()),loadAllDays()]);
   render();
