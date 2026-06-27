@@ -352,6 +352,8 @@ function feedItemHTML(f,family){
 function render(){
   if(isFamily())renderFamily();
   else renderNora();
+  // Both views poll for fresh data
+  if(isToday()) startPolling();
 }
 
 function renderNora(){
@@ -592,18 +594,47 @@ function startPolling(){
   if(polling)clearInterval(polling);
   polling=setInterval(async()=>{
     if(isSaving)return;
-    await syncFromServer();
-  },8000);
+    try{
+      const fresh=await fetchDay(viewDate);
+      dayData=fresh;
+      // Update feed
+      const feed=document.getElementById('feed');
+      if(feed) feed.innerHTML=renderFeedHTML(isFamily());
+      // Update scores
+      const sc=document.querySelectorAll('.sc-val');
+      if(sc[0])sc[0].textContent=dayData.totalPts;
+      if(sc[1])sc[1].textContent=totalEventsToday();
+      if(sc[2])sc[2].textContent=(dayData.notes||[]).length;
+      // Update sections for Nora
+      if(!isFamily()){
+        const s=document.getElementById('sections');
+        if(s) renderSections();
+      }
+    }catch(e){}
+  },5000);
 }
 
 // ─── INIT ─────────────────────────────────────────────────────────────────────
 async function init(){
+  const today=todayKey();
   try{
-    [dayData,allDays]=await Promise.all([fetchDay(todayKey()),fetchAllDays()]);
+    const r=await fetch(`/api/state?date=${today}&t=${Date.now()}`,{cache:'no-store'});
+    if(r.ok){
+      const data=await r.json();
+      dayData={
+        date:data.date||today,
+        events:Array.isArray(data.events)?data.events:[],
+        notes:Array.isArray(data.notes)?data.notes:[],
+        totalPts:typeof data.totalPts==='number'?data.totalPts:0,
+      };
+    }
   }catch(e){
-    dayData={date:todayKey(),events:[],notes:[],totalPts:0};
-    allDays=[];
+    dayData={date:today,events:[],notes:[],totalPts:0};
   }
+  try{
+    const r2=await fetch(`/api/state?dates=all&t=${Date.now()}`,{cache:'no-store'});
+    if(r2.ok){const j=await r2.json();allDays=j.days||[];}
+  }catch(e){allDays=[];}
   render();
 }
 
