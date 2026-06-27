@@ -15,14 +15,6 @@ async function kvSet(url, token, key, value) {
   return r.ok;
 }
 
-async function kvKeys(url, token, pattern) {
-  const r = await fetch(`${url}/keys/${encodeURIComponent(pattern)}`, {
-    headers: { Authorization: `Bearer ${token}` }
-  });
-  const json = await r.json();
-  return json.result || [];
-}
-
 export default async function handler(req, res) {
   res.setHeader('Access-Control-Allow-Origin', '*');
   res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
@@ -34,44 +26,53 @@ export default async function handler(req, res) {
   const url = process.env.KV_REST_API_URL;
   const token = process.env.KV_REST_API_TOKEN;
 
-  if (!url || !token) {
-    return res.status(500).json({ error: 'Missing KV credentials' });
-  }
+  if (!url || !token) return res.status(500).json({ error: 'Missing KV credentials' });
 
-  // GET /api/state?date=2024-06-02  — get a specific day
-  // GET /api/state?dates=all         — get list of all days that have data
   if (req.method === 'GET') {
     const { date, dates } = req.query;
 
+    // Return list of all days
     if (dates === 'all') {
       try {
-        const keys = await kvKeys(url, token, 'sloane-day-*');
-        const dayList = keys
-          .map(k => k.replace('sloane-day-', ''))
-          .sort()
-          .reverse();
-        return res.status(200).json({ days: dayList });
+        const index = await kvGet(url, token, 'sloane-days-index') || [];
+        return res.status(200).json({ days: index });
       } catch (e) {
         return res.status(500).json({ error: 'Failed to list days' });
       }
     }
 
-    const key = date ? `sloane-day-${date}` : `sloane-day-${todayKey()}`;
+    // Return a specific day's data
+    const key = `sloane-day-${date || todayKey()}`;
     try {
       const data = await kvGet(url, token, key);
-      return res.status(200).json(data || { date: date || todayKey(), events: [], notes: [], totalPts: 0 });
+      return res.status(200).json(data || {
+        date: date || todayKey(),
+        events: [],
+        notes: [],
+        totalPts: 0
+      });
     } catch (e) {
       return res.status(500).json({ error: 'Failed to load' });
     }
   }
 
-  // POST /api/state — save a day's data (date in body)
   if (req.method === 'POST') {
     try {
       const body = req.body;
       const date = body.date || todayKey();
       const key = `sloane-day-${date}`;
+
+      // Save the day's data
       await kvSet(url, token, key, body);
+
+      // Update the days index
+      const index = await kvGet(url, token, 'sloane-days-index') || [];
+      if (!index.includes(date)) {
+        index.push(date);
+        index.sort().reverse();
+        await kvSet(url, token, 'sloane-days-index', index);
+      }
+
       return res.status(200).json({ ok: true });
     } catch (e) {
       return res.status(500).json({ error: 'Failed to save' });
