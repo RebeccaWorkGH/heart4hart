@@ -350,10 +350,12 @@ function feedItemHTML(f,family){
 
 // ─── MAIN RENDER ─────────────────────────────────────────────────────────────
 function render(){
-  if(isFamily())renderFamily();
-  else renderNora();
-  // Both views poll for fresh data
-  if(isToday()) startPolling();
+  if(isFamily()){
+    renderFamily();
+    if(isToday()) startPolling();
+  } else {
+    renderNora();
+  }
 }
 
 function renderNora(){
@@ -593,22 +595,28 @@ async function pickDay(d){closePicker();await switchDay(d);}
 function startPolling(){
   if(polling)clearInterval(polling);
   polling=setInterval(async()=>{
-    if(isSaving)return;
+    if(isSaving) return;
     try{
       const fresh=await fetchDay(viewDate);
-      dayData=fresh;
-      // Update feed
-      const feed=document.getElementById('feed');
-      if(feed) feed.innerHTML=renderFeedHTML(isFamily());
-      // Update scores
-      const sc=document.querySelectorAll('.sc-val');
-      if(sc[0])sc[0].textContent=dayData.totalPts;
-      if(sc[1])sc[1].textContent=totalEventsToday();
-      if(sc[2])sc[2].textContent=(dayData.notes||[]).length;
-      // Update sections for Nora
-      if(!isFamily()){
-        const s=document.getElementById('sections');
-        if(s) renderSections();
+      if(isFamily()){
+        // Family view: always take server data
+        dayData=fresh;
+        const feed=document.getElementById('feed');
+        if(feed) feed.innerHTML=renderFeedHTML(true);
+        const sc=document.querySelectorAll('.sc-val');
+        if(sc[0])sc[0].textContent=dayData.totalPts;
+        if(sc[1])sc[1].textContent=totalEventsToday();
+        if(sc[2])sc[2].textContent=(dayData.notes||[]).length;
+      } else {
+        // Nora's view: only update notes from server, preserve her logged events
+        const serverNotes=fresh.notes||[];
+        if(serverNotes.length>(dayData.notes||[]).length){
+          dayData.notes=serverNotes;
+          const feed=document.getElementById('feed');
+          if(feed) feed.innerHTML=renderFeedHTML(false);
+          const sc=document.querySelectorAll('.sc-val');
+          if(sc[2])sc[2].textContent=dayData.notes.length;
+        }
       }
     }catch(e){}
   },5000);
